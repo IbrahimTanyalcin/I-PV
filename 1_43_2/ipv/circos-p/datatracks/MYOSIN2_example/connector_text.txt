@@ -1,0 +1,2 @@
+myosin-2 660000000 683000000 actin-binding property=actin,svgclass=connector,svgid=Connector_661-683
+myosin-2 762000000 777000000 actin-binding property=actin,svgclass=connector,svgid=Connector_763-777

@@ -1,0 +1,4 @@
+myosin-2 671500000 660000000 property=actin
+myosin-2 671500000 683000000 property=actin
+myosin-2 769500000 762000000 property=actin
+myosin-2 769500000 777000000 property=actin
