@@ -18,5 +18,7 @@ Directions:
 
 Note: Do not change the files in the ./template folder.
 You can watch the tutorial videos online at i-pv.org
+Are you looking for the Javascript codes? Go to the circos-p/templates folder, you will see 2 files; javascript.txt and javascript_noconnector.txt.
+If you did not specify any connectors, than javascript_noconnector.txt is used or vice versa. The javascript is encapsulated inside the html tag of which the svg will be embedded by the perl script.
 
 ***The examples belong to version 1.44.
