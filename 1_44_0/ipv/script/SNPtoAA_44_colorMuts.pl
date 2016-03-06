@@ -413,10 +413,10 @@ while (<$snpfile>) {
 					} else {
 						$type = "Non-synonymous";
 					}
-					print $snpfile_missense_textplot $protein_name." ".int($position/3)*1000000 ." ".(int($position/3)+1)*1000000 ." "."p.".$cdna_aminoacid. (int($position/3)+1) .$cdna_aminoacid_new." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid. (int($position/3)+1) .$cdna_aminoacid_new."_rsID_".$snp_data[$#snp_data-1]."_$i".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}."\n";
+					print $snpfile_missense_textplot $protein_name." ".int($position/3)*1000000 ." ".(int($position/3)+1)*1000000 ." "."p.".$cdna_aminoacid. (int($position/3)+1) .$cdna_aminoacid_new." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid. (int($position/3)+1) .$cdna_aminoacid_new."_rsID_".$snp_data[$#snp_data-1]."_$i"."_$missense_counter".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}."\n";
 				} elsif (($change[$i] =~ /^-$/)||(scalar(split("",$change[$i])) % 3 != 1)) {
 					$type = "Frameshift";
-					print $snpfile_missense_textplot $protein_name." ".int($position/3)*1000000 ." ".(int($position/3)+1)*1000000 ." "."p.".$cdna_aminoacid. (int($position/3)+1) ."fs"." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid. (int($position/3)+1) ."fs"."_rsID_".$snp_data[$#snp_data-1]."_$i".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}."\n";
+					print $snpfile_missense_textplot $protein_name." ".int($position/3)*1000000 ." ".(int($position/3)+1)*1000000 ." "."p.".$cdna_aminoacid. (int($position/3)+1) ."fs"." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid. (int($position/3)+1) ."fs"."_rsID_".$snp_data[$#snp_data-1]."_$i"."_$missense_counter".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}."\n";
 				}
 			}
 		} elsif ($position/3 <= $protein_length) {
@@ -469,10 +469,10 @@ while (<$snpfile>) {
 					} else {
 						$type = "Non-synonymous";
 					}
-					print $snpfile_missense_textplot $protein_name." ".(int($position/3)-1)*1000000 ." ".(int($position/3))*1000000 ." "."p.".$cdna_aminoacid.int($position/3) .$cdna_aminoacid_new." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid.int($position/3) .$cdna_aminoacid_new."_rsID_".$snp_data[$#snp_data-1]."_$i".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}."\n";
+					print $snpfile_missense_textplot $protein_name." ".(int($position/3)-1)*1000000 ." ".(int($position/3))*1000000 ." "."p.".$cdna_aminoacid.int($position/3) .$cdna_aminoacid_new." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid.int($position/3) .$cdna_aminoacid_new."_rsID_".$snp_data[$#snp_data-1]."_$i"."_$missense_counter".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}."\n";
 				} elsif (($change[$i] =~ /^-$/)||(scalar(split("",$change[$i])) % 3 != 1)) {
 					$type = "Frameshift";
-					print $snpfile_missense_textplot $protein_name." ".(int($position/3)-1)*1000000 ." ".(int($position/3))*1000000 ." "."p.".$cdna_aminoacid.int($position/3) ."fs"." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid.int($position/3) ."fs"."_rsID_".$snp_data[$#snp_data-1]."_$i".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}."\n";
+					print $snpfile_missense_textplot $protein_name." ".(int($position/3)-1)*1000000 ." ".(int($position/3))*1000000 ." "."p.".$cdna_aminoacid.int($position/3) ."fs"." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid.int($position/3) ."fs"."_rsID_".$snp_data[$#snp_data-1]."_$i"."_$missense_counter".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}."\n";
 				}
 			}
 		}
@@ -630,9 +630,17 @@ while (<$snpfile>) {
 		
 		#the definition for all tile svg class is ".tile", the svg id is "#tileID_position_changelength_InsOrDel_Frameshift"
 		if (($position % 3 != 0)&&($position/3 <= $protein_length)) {
-			print $tilefile $protein_name." ".(int($position/3)-$change_length_aa/2)*1000000 ." ".(int($position/3)+$change_length_aa/2)*1000000 ." "."type=".$type.","."validation=".$validation_status.","."svgclass=tile".","."svgid="."tile".$tile_ID."_".$position."_".$change_length_aa."_".$InsOrDel."_".$frameshift.","."svgdbsource=".$snp_data[$#snp_data].","."svgtilersid=".$snp_data[$#snp_data-1]."\n";
+			if ($InsOrDel ne "deletion") {
+				print $tilefile $protein_name." ".(int($position/3)-$change_length_aa/2)*1000000 ." ".(int($position/3)+$change_length_aa/2)*1000000 ." "."type=".$type.","."validation=".$validation_status.","."svgclass=tile".","."svgid="."tile".$tile_ID."_".$position."_".$change_length_aa."_".$InsOrDel."_".$frameshift.","."svgdbsource=".$snp_data[$#snp_data].","."svgtilersid=".$snp_data[$#snp_data-1]."\n";
+			} else {
+				print $tilefile $protein_name." ".(int($position/3))*1000000 ." ".(int($position/3)+$change_length_aa)*1000000 ." "."type=".$type.","."validation=".$validation_status.","."svgclass=tile".","."svgid="."tile".$tile_ID."_".$position."_".$change_length_aa."_".$InsOrDel."_".$frameshift.","."svgdbsource=".$snp_data[$#snp_data].","."svgtilersid=".$snp_data[$#snp_data-1]."\n";
+			}
 		} elsif ($position/3 <= $protein_length) {
-			print $tilefile $protein_name." ".(int($position/3)-1-$change_length_aa/2)*1000000 ." ".(int($position/3)-1+$change_length_aa/2)*1000000 ." "."type=".$type.","."validation=".$validation_status.","."svgclass=tile".","."svgid="."tile".$tile_ID."_".$position."_".$change_length_aa."_".$InsOrDel."_".$frameshift.","."svgdbsource=".$snp_data[$#snp_data].","."svgtilersid=".$snp_data[$#snp_data-1]."\n";
+			if ($InsOrDel ne "deletion") {
+				print $tilefile $protein_name." ".(int($position/3)-1-$change_length_aa/2)*1000000 ." ".(int($position/3)-1+$change_length_aa/2)*1000000 ." "."type=".$type.","."validation=".$validation_status.","."svgclass=tile".","."svgid="."tile".$tile_ID."_".$position."_".$change_length_aa."_".$InsOrDel."_".$frameshift.","."svgdbsource=".$snp_data[$#snp_data].","."svgtilersid=".$snp_data[$#snp_data-1]."\n";
+			} else {
+				print $tilefile $protein_name." ".(int($position/3)-1)*1000000 ." ".(int($position/3)-1+$change_length_aa)*1000000 ." "."type=".$type.","."validation=".$validation_status.","."svgclass=tile".","."svgid="."tile".$tile_ID."_".$position."_".$change_length_aa."_".$InsOrDel."_".$frameshift.","."svgdbsource=".$snp_data[$#snp_data].","."svgtilersid=".$snp_data[$#snp_data-1]."\n";
+			}
 		}
 		push (@SNPtileplot_inventory,$SNPtileplot_inventory_element);
 	}
@@ -864,6 +872,8 @@ close $karyotypefile or die "$!\n";
 close $cdnafile or die "$!\n";
 close $fastafile or die "$!\n";
 #close file handles
+print "Filehandles at datatracks folder are closed.\nYou can now change these folders before proceeding.\nPress enter to continue..\n";
+<STDIN>;
 
 #Run circos
 print "Running circos..\n";
@@ -976,8 +986,8 @@ sub list_creation {
 		REDEFINE_2:
 		$_ = <STDIN>;
 		chomp $_;
-		if ($_ =~ /\s+|\/+|\\+/) {
-			print "Spaces or slashes are not allowed. Use underscores for spaces instead. Please retry:\n";
+		if ($_ =~ /\s+|\/+|\\+|[()]+|\[+|\]+/) {
+			print "Spaces,slashes or pharanthesis are not allowed. Use underscores for spaces instead. Please retry:\n";
 			goto REDEFINE_2;
 		}
 		$property = $_;
@@ -1038,8 +1048,8 @@ sub markup {
 	REDEFINE_MARKUP_2:
 	$_ = <STDIN>;
 	chomp $_;
-	if ($_ =~ /\s+|\/+|\\+/) {
-		print "Spaces or slashes are not allowed. Use underscores for spaces instead. Please retry:\n";
+	if ($_ =~ /\s+|\/+|\\+|[()]+|\[+|\]+/) {
+		print "Spaces,slashes or pharanthesis are not allowed. Use underscores for spaces instead. Please retry:\n";
 		goto REDEFINE_MARKUP_2;
 	}
 	push (@markup, $_);
@@ -1052,8 +1062,8 @@ sub markup {
 		REDEFINE_MARKUP_3:
 		$_ = <STDIN>;
 		chomp $_;
-		if ($_ =~ /\s+|\/+|\\+/) {
-			print "Spaces or slashes are not allowed. Use underscores for spaces instead. Please retry:\n";
+		if ($_ =~ /\s+|\/+|\\+|[()]+|\[+|\]+/) {
+			print "Spaces,slashes or pharanthesis are not allowed. Use underscores for spaces instead. Please retry:\n";
 			goto REDEFINE_MARKUP_3;
 		}
 		$property = $_;

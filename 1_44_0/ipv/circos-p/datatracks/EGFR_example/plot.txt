@@ -36,16 +36,23 @@ flow = continue
 #</rule>
 
 <rule>
-condition = var(type) eq 'Domain' && var(property) eq 'myosin_motor'
+condition = var(type) eq 'Domain' && var(property) eq 'Helical'
+stroke_color = red
+fill_color = dred
+r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),0,11,0,9)] .'r')
+flow = continue
+</rule>
+<rule>
+condition = var(type) eq 'Domain' && var(property) eq 'Extracellular'
 stroke_color = green
 fill_color = dgreen
 r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),0,11,0,9)] .'r')
 flow = continue
 </rule>
 <rule>
-condition = var(type) eq 'Domain' && var(property) eq 'coiled_coil'
-stroke_color = magenta
-fill_color = dmagenta
+condition = var(type) eq 'Domain' && var(property) eq 'Cytoplasmic'
+stroke_color = blue
+fill_color = dblue
 r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),0,11,0,9)] .'r')
 flow = continue
 </rule>
@@ -76,7 +83,7 @@ snuggle_link_overlap_tolerance = 2p
 padding = 0.0r
 rpadding = 0.0r
 label_font = condensed
-label_size = 18p
+label_size = 22p
 #label_size_sequence
 color = vlgrey_a2
 link_dims = 1p,3p,30p,3p,1p
@@ -136,7 +143,7 @@ fill_color       = dorange
 stroke_color     = vdorange
 stroke_thickness = 0
 glyph            = triangle
-glyph_size = 20p
+glyph_size = 25p
 #glyph_size_scatter
 z                = 3
 
@@ -325,7 +332,7 @@ snuggle_link_overlap_tolerance = 4p
 padding = 0r
 rpadding = 0r
 label_font = condensed
-label_size = 19p
+label_size = 22p
 #label_size_missense
 color = vlgrey_a2
 link_dims = 1p,3p,30p,3p,1p
@@ -377,8 +384,28 @@ z         = 6
 
 <rules>
 <rule>
-condition = var(property) eq 'actin'
-color = orange
+condition = var(property) eq 'dimerization'
+color = langelica
+flow = continue
+</rule>
+<rule>
+condition = var(property) eq 'missingVariant'
+color = lpurple
+flow = continue
+</rule>
+<rule>
+condition = var(property) eq 'signal'
+color = vlwarmchampagne
+flow = continue
+</rule>
+<rule>
+condition = var(property) eq 'PIK3C2B'
+color = lfirelight
+flow = continue
+</rule>
+<rule>
+condition = var(property) eq 'ATP'
+color = dorange
 flow = continue
 </rule>
 #markup_colors1
@@ -425,8 +452,28 @@ value = eval(my $display_name = var(value); $display_name =~ s/_/ /g; $display_n
 flow = continue
 </rule>
 <rule>
-condition = var(property) eq 'actin'
-color = orange
+condition = var(property) eq 'dimerization'
+color = langelica
+flow = continue
+</rule>
+<rule>
+condition = var(property) eq 'missingVariant'
+color = lpurple
+flow = continue
+</rule>
+<rule>
+condition = var(property) eq 'signal'
+color = vlwarmchampagne
+flow = continue
+</rule>
+<rule>
+condition = var(property) eq 'PIK3C2B'
+color = lfirelight
+flow = continue
+</rule>
+<rule>
+condition = var(property) eq 'ATP'
+color = dorange
 flow = continue
 </rule>
 #markup_colors2
@@ -442,7 +489,7 @@ type             = tile
 file             = ..\datatracks\tile_plot.txt
 color            = black
 layers           = 20
-thickness = 41p
+thickness = 38p
 #tile_thickness
 stroke_thickness = 0p
 stroke_color     =vvdgrey
