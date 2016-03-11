@@ -7,6 +7,7 @@ If you do not like videos, I will also update the wiki. But meanwhile you can vi
 I-PV aims to unify protein features in a single interactive figure. It is easy to generate and
 highly customizable. Data is checked and then plotted. When you publish figures with I-PV, I recommed you also
 post the files in the datatracks folder as supplementary. In I-PV, what you see is what you get, and 
-also it makes sure others can get what they see. Below is a sample output:
+also it makes sure others can get what they see. Below, you will see a sample output. Now, there is interactive,
+but than there is [INTERACTIVE](http://i-pv.org/EGFR.html)...
 
 ![alt tag](https://github.com/IbrahimTanyalcin/I-PV/blob/master/sample.png)
