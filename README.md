@@ -9,4 +9,4 @@ highly customizable. Data is checked and then plotted. When you publish figures 
 post the files in the datatracks folder as supplementary. In I-PV, what you see is what you get, and 
 also it makes sure others can get what they see. Below is a sample output:
 
-![alt tag](https://github.com/IbrahimTanyalcin/I-PV/sample.png)
+![alt tag](https://github.com/IbrahimTanyalcin/I-PV/master/sample.png)
