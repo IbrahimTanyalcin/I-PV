@@ -10,4 +10,4 @@ post the files in the datatracks folder as supplementary. In I-PV, what you see 
 also it makes sure others can get what they see. Below, you will see a sample output. Now, there is interactive,
 but than there is [INTERACTIVE](http://i-pv.org/EGFR.html)...
 
-![alt tag](https://github.com/IbrahimTanyalcin/I-PV/blob/master/sample.png)
+![alt tag](./sample.png)
