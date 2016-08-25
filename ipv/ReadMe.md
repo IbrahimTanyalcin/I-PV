@@ -1,9 +1,19 @@
-There are 4 main scripts inside the ./scripts folder. The master script is the script that starts with SNPtoAA.. The part after underscore designates the new feature that belongs to that release. The 3 other scripts are helper scripts. vcfToTsv_v3 converts a human readable vcf to a tsv. HGVStoBiomart converts mutations like XXXX_YYYYdelAATTAAGAGAAGCAACATCTCC>TCTC to variants separated by forward slash(default input of i-pv). Beware that you provide a single column of equations, it will check from your mRNA and protein sequence whether if your variants are correctly annotated. invokeCircos does what it says, suppose you exited the i-pv after generation of circos datatracks. And then you changed these datatracks a bit and now want to re-run i-pv. invokeCircos script remedies the problem of having to through entire i-pv workflow by simply taking your mRNA, protein fasta seq and invoking circos with the datatracks in the ./datatracks folder.
+There are 4 main scripts inside the ./script folder. The master script is the script that starts with SNPtoAA.. 
+The part after underscore designates the new feature that belongs to that release. 
+The 3 other scripts are helper scripts. 
+*vcfToTsv_v3 converts a human readable vcf to a tsv. 
+*_HGVStoBiomart_ converts mutations like XXXX_YYYYdelAATTAAGAGAAGCAACATCTCC>TCTC to variants separated by forward slash(default input of i-pv). 
+ Beware that you provide a single column of equations, it will check from your mRNA and protein sequence whether if your variants are correctly annotated. 
+*_invokeCircos_ does what it says, suppose you exited the i-pv after generation of circos datatracks. 
+And then you changed these datatracks a bit and now want to re-run i-pv. 
+*invokeCircos* script remedies the problem of having to through entire i-pv workflow by simply taking your mRNA, protein fasta seq and invoking circos with the datatracks in the ./datatracks folder.
 
-Recommendations: If on windows, use strawberry perl. Make sure dependencies of circos is met. Use circos version 0.67-7. 
-If on windows, versions of circos newer than 0.67-7 will give an error, replace the circos file in the ./bin folder of circos with the same file coming from 0.67-7 version. If you use these newer version a compulsory white background is added. So when your output from i-pv is generated, go to ./Output folder and open the html file, search for a group with the id of bg and remove it. This should solve the white background issue.
+__Recommendations__: If on windows, use strawberry perl. Make sure dependencies of circos is met. Use circos version 0.67-7. 
+If on windows, versions of circos newer than 0.67-7 will give an error, replace the circos file in the ./bin folder of circos with the same file coming from 0.67-7 version. 
+If you use these newer version a compulsory white background is added. So when your output from i-pv is generated, go to ./Output folder and open the html file, search for a group with the id of bg and remove it. 
+This should solve the white background issue.
 
-Directions:
+__Directions__:
 
 1. Extract the archive anywhere in your computer.
 2. Open SNPtoAA_44_colorMuts.pl in ./script folder and move to line 880. Search for a variable called $circos
