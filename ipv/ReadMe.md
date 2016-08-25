@@ -5,10 +5,10 @@ The 3 other scripts are helper scripts:
  * vcfToTsv_v3 converts a human readable vcf to a tsv. 
  * _HGVStoBiomart_ converts mutations like 
  
-```XXXX_YYYYdelAATTAAGAGAAGCAACATCTCC>TCTC``` 
+    XXXX_YYYYdelAATTAAGAGAAGCAACATCTCC>TCTC
  
- to variants separated by forward slash (A/T/C/G [*default input of i-pv*](http://i-pv.org/intro_ipv_alt4.html)). 
- Beware that you provide a single column of equations, it will check from your mRNA and protein sequence whether if your variants are correctly annotated. 
+to variants separated by forward slash (A/T/C/G [*default input of i-pv*](http://i-pv.org/intro_ipv_alt4.html)). 
+Beware that you provide a single column of equations, it will check from your mRNA and protein sequence whether if your variants are correctly annotated. 
  * _invokeCircos_ does what it says, suppose you exited the i-pv after generation of circos datatracks. 
 And then you changed these datatracks a bit and now want to re-run i-pv. 
 *invokeCircos* script remedies the problem of having to through entire i-pv workflow by simply taking your mRNA, protein fasta seq and invoking circos with the datatracks in the *./datatracks* folder.
