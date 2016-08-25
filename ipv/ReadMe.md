@@ -5,7 +5,7 @@ The 3 other scripts are helper scripts:
  * vcfToTsv_v3 converts a human readable vcf to a tsv. 
  * _HGVStoBiomart_ converts mutations like 
  
-    ```XXXX_YYYYdelAATTAAGAGAAGCAACATCTCC>TCTC```
+    > XXXX_YYYYdelAATTAAGAGAAGCAACATCTCC>TCTC
  
 to variants separated by forward slash (A/T/C/G [*default input of i-pv*](http://i-pv.org/intro_ipv_alt4.html)). 
 Beware that you provide a single column of equations, it will check from your mRNA and protein sequence whether if your variants are correctly annotated. 
