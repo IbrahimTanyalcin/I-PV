@@ -1,6 +1,6 @@
 # I-PV
 ##Interactive Protein Sequence VIsualization/Viewer
-This is the extracted I-PV folder which can also be downloaded from ![I-PV official website]http://i-pv.org/ipv_minimal.html
+This is the extracted I-PV folder which can also be downloaded from ![I-PV official website](http://i-pv.org/ipv_minimal.html)
 Refer to the __./ipv/ReadMe.md__ for more detailed explanation on usage.
 Follow the video tutorials for how to use the program. 
 If you do not like videos, I will also update the wiki. But meanwhile you can visit http://i-pv.org/ipv_rec.html or [here](./ipv/).
