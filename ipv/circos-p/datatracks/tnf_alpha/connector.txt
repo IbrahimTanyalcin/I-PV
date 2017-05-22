@@ -1,0 +1,2 @@
+TNF-alpha 42000000 29000000 property=Transmembrane
+TNF-alpha 42000000 55000000 property=Transmembrane

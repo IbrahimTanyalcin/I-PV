@@ -1,0 +1,2 @@
+TP53 178000000 179000000 Zinc property=Zinc,svgclass=connector,svgid=Connector_179-179
+TP53 241000000 242000000 Zinc property=Zinc,svgclass=connector,svgid=Connector_242-242

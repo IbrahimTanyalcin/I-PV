@@ -90,6 +90,9 @@
 			.histogramIcons {
 				transition: opacity 0.5s ease;
 			}
+			.indorilLogo {
+				transition: opacity 1s ease, visibility 1s ease;
+			}
 		</style>
     </head>
     <body>
@@ -106,6 +109,10 @@
 			d3.select("#NeonGlow").append("filter:feGaussianBlur").attr("in","feColorMatrixOut").attr("stdDeviation",10).attr("result","feGaussianBlurOut");
 			d3.select("#NeonGlow").append("filter:feBlend").attr("in","SourceGraphic").attr("in2","feGaussianBlurOut").attr("result","feBlendOut").attr("mode","screen");
 			//***Filters***
+			//***Markers***
+			d3.select("#ExtraS").append("defs:marker").attr("id","markerTriangle").attr("markerWidth",6).attr("markerHeight",6).attr("refX",1).attr("refY",3).attr("orient","auto");
+			d3.select("#markerTriangle").append("marker:path").attr("d","M1,1 L4,3 L1,5 L1,1 Z").attr("fill","Orange").attr("stroke-width",2).attr("stroke","Orange").attr("stroke-linejoin","round");
+			//***Markers***
 			
 			//***Global Variables for Graphpad
 			var GoldenRatio = 1.618;
@@ -356,7 +363,7 @@
 			//***Original Properties of Drawing elements***
 			
 			
-			var code = "";
+			window.code = "";
 			var w = 6000;
 			var h = 6000;
 			var padding = 200;
@@ -424,6 +431,10 @@
 			d3.selectAll(".actionOptions").transition().attr("fill-opacity",0.0).attr("visibility","hidden").delay(0).duration(500);
 			d3.select("#fileUploadIcon").style("opacity",0).attr("visibility","hidden");
 				//File Upload Elements
+				
+				//IndorilLogo
+			d3.selectAll(".indorilLogo").style("opacity",0).style("visibility","hidden");	
+				//IndorilLogo
 			});
 			d3.select("#annotation").append("text").text("Show Options").attr("id","ShowOptions").attr("text-anchor","middle").attr("x", 200).attr("y", 200).attr("font-family","sans-serif").attr("font-size","60px").attr("fill","DimGray").attr("stroke","DimGray").attr("fill-opacity",0.9).attr("stroke-opacity",0.0).attr("visibility","hidden");
 			d3.select("#ShowOptions")
@@ -483,6 +494,10 @@
 			d3.selectAll(".actionOptions").transition().attr("fill-opacity",0.9).attr("visibility","visible").delay(0).duration(500);
 			d3.select("#fileUploadIcon").style("opacity",0.62).attr("visibility","visible");
 				//File Upload Elements
+			
+				//IndorilLogo
+			d3.selectAll(".indorilLogo").style("opacity",1.0).style("visibility","visible");	
+				//IndorilLogo
 			});
 			//***Options Control***
 			
@@ -987,6 +1002,7 @@
 			}
 			
 			eval(code); 
+			code = "completed";
 			
 			//***Email and Logo***
 			var logo = "data:image/png;base64,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";
@@ -3400,13 +3416,13 @@
 			//the x,y and r values are between 0 and 1, they represent the full width and the height of whatever container they are drawn in
 		function drawEqTriangle (IDtoDrawOn,objectHash,currentWidth,currentHeight) {
 			currentRadius = Math.min(currentWidth,currentHeight);
-			d3.select(IDtoDrawOn).append("polygon").attr("points",function(){return (objectHash.x*currentWidth)+","+(objectHash.y*currentHeight-objectHash.radius*currentRadius)+" "+(objectHash.x*currentWidth+objectHash.radius*currentRadius/2*Math.sqrt(3))+","+(objectHash.y*currentHeight+objectHash.radius*currentRadius/2)+" "+(objectHash.x*currentWidth-objectHash.radius*currentRadius/2*Math.sqrt(3))+","+(objectHash.y*currentHeight+objectHash.radius*currentRadius/2);}).attr("filter",function(){if(objectHash.filter){return "url(#NeonGlow)";}else{return null;}}).attr("stroke-linejoin","round").attr("fill",function(){if (objectHash.fill){return objectHash.fill;}else{return "DimGray";}}).attr("fill-opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).attr("stroke",function(){if (objectHash.stroke){return objectHash.stroke;}else{return "DimGray";}}).attr("stroke-opacity",function(){if (objectHash.strokeOpacity){return Math.sqrt(objectHash.strokeOpacity);}else{return 0.71;}}).attr("stroke-width",function(){if (objectHash.width){return objectHash.width;}else{return 2;}}).attr("id",function(){if (objectHash.id){return objectHash.id;}}).attr("class",function(){if (objectHash.class){return objectHash.class;}}).style("opacity",0).transition().style("opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).delay(function(){if(objectHash.delay){return objectHash.delay;}else{return 0;}}).duration(function(){if(objectHash.duration){return objectHash.duration;}else{return 0;}});
+			d3.select(IDtoDrawOn).append("polygon").attr("points",function(){return (objectHash.x*currentWidth)+","+(objectHash.y*currentHeight-objectHash.radius*currentRadius)+" "+(objectHash.x*currentWidth+objectHash.radius*currentRadius/2*Math.sqrt(3))+","+(objectHash.y*currentHeight+objectHash.radius*currentRadius/2)+" "+(objectHash.x*currentWidth-objectHash.radius*currentRadius/2*Math.sqrt(3))+","+(objectHash.y*currentHeight+objectHash.radius*currentRadius/2);}).attr("filter",function(){if(objectHash.filter){return "url(#NeonGlow)";}else{return null;}}).attr("stroke-linejoin","round").attr("fill",function(){if (objectHash.fill){return objectHash.fill;}else{return "DimGray";}}).attr("fill-opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).attr("stroke",function(){if (objectHash.stroke){return objectHash.stroke;}else{return "DimGray";}}).attr("stroke-opacity",function(){if (objectHash.strokeOpacity){return Math.sqrt(objectHash.strokeOpacity);}else{return 0.71;}}).attr("stroke-width",function(){if (objectHash.width){return objectHash.width;}else{return 2;}}).attr("id",function(){if (objectHash.id){return objectHash.id;}}).attr("class",function(){if (objectHash.class){return objectHash.class;}}).attr("onmouseover",function(){if(objectHash.mouseover){return objectHash.mouseover;}}).attr("onmouseout",function(){if(objectHash.mouseout){return objectHash.mouseout;}}).style("opacity",0).transition().style("opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).delay(function(){if(objectHash.delay){return objectHash.delay;}else{return 0;}}).duration(function(){if(objectHash.duration){return objectHash.duration;}else{return 0;}});
 		}
 		<!--Draw equilateral triangle with given radius measured as the distance from center of gravity to one corner-->
 		<!--Draw hexagon-->
 		function drawHexagon (IDtoDrawOn,objectHash,currentWidth,currentHeight) {
 			currentRadius = Math.min(currentWidth,currentHeight);
-			d3.select(IDtoDrawOn).append("polygon").attr("points",function(){return (objectHash.x*currentWidth+objectHash.radius*currentRadius/2)+","+(objectHash.y*currentHeight-objectHash.radius*currentRadius/2*Math.sqrt(3))+" "+(objectHash.x*currentWidth+objectHash.radius*currentRadius)+","+(objectHash.y*currentHeight)+" "+(objectHash.x*currentWidth+objectHash.radius*currentRadius/2)+","+(objectHash.y*currentHeight+objectHash.radius*currentRadius/2*Math.sqrt(3))+" "+(objectHash.x*currentWidth-objectHash.radius*currentRadius/2)+","+(objectHash.y*currentHeight+objectHash.radius*currentRadius/2*Math.sqrt(3))+" "+(objectHash.x*currentWidth-objectHash.radius*currentRadius)+","+(objectHash.y*currentHeight)+" "+(objectHash.x*currentWidth-objectHash.radius*currentRadius/2)+","+(objectHash.y*currentHeight-objectHash.radius*currentRadius/2*Math.sqrt(3));}).attr("filter",function(){if(objectHash.filter){return "url(#NeonGlow)";}else{return null;}}).attr("stroke-linejoin","round").attr("fill",function(){if (objectHash.fill){return objectHash.fill;}else{return "DimGray";}}).attr("fill-opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).attr("stroke",function(){if (objectHash.stroke){return objectHash.stroke;}else{return "DimGray";}}).attr("stroke-opacity",function(){if (objectHash.strokeOpacity){return Math.sqrt(objectHash.strokeOpacity);}else{return 0.71;}}).attr("stroke-width",function(){if (objectHash.width){return objectHash.width;}else{return 2;}}).attr("id",function(){if (objectHash.id){return objectHash.id;}}).attr("class",function(){if (objectHash.class){return objectHash.class;}}).style("opacity",0).transition().style("opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).delay(function(){if(objectHash.delay){return objectHash.delay;}else{return 0;}}).duration(function(){if(objectHash.duration){return objectHash.duration;}else{return 0;}});
+			d3.select(IDtoDrawOn).append("polygon").attr("points",function(){return (objectHash.x*currentWidth+objectHash.radius*currentRadius/2)+","+(objectHash.y*currentHeight-objectHash.radius*currentRadius/2*Math.sqrt(3))+" "+(objectHash.x*currentWidth+objectHash.radius*currentRadius)+","+(objectHash.y*currentHeight)+" "+(objectHash.x*currentWidth+objectHash.radius*currentRadius/2)+","+(objectHash.y*currentHeight+objectHash.radius*currentRadius/2*Math.sqrt(3))+" "+(objectHash.x*currentWidth-objectHash.radius*currentRadius/2)+","+(objectHash.y*currentHeight+objectHash.radius*currentRadius/2*Math.sqrt(3))+" "+(objectHash.x*currentWidth-objectHash.radius*currentRadius)+","+(objectHash.y*currentHeight)+" "+(objectHash.x*currentWidth-objectHash.radius*currentRadius/2)+","+(objectHash.y*currentHeight-objectHash.radius*currentRadius/2*Math.sqrt(3));}).attr("filter",function(){if(objectHash.filter){return "url(#NeonGlow)";}else{return null;}}).attr("stroke-linejoin","round").attr("fill",function(){if (objectHash.fill){return objectHash.fill;}else{return "DimGray";}}).attr("fill-opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).attr("stroke",function(){if (objectHash.stroke){return objectHash.stroke;}else{return "DimGray";}}).attr("stroke-opacity",function(){if (objectHash.strokeOpacity){return Math.sqrt(objectHash.strokeOpacity);}else{return 0.71;}}).attr("stroke-width",function(){if (objectHash.width){return objectHash.width;}else{return 2;}}).attr("id",function(){if (objectHash.id){return objectHash.id;}}).attr("class",function(){if (objectHash.class){return objectHash.class;}}).attr("onmouseover",function(){if(objectHash.mouseover){return objectHash.mouseover;}}).attr("onmouseout",function(){if(objectHash.mouseout){return objectHash.mouseout;}}).style("opacity",0).transition().style("opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).delay(function(){if(objectHash.delay){return objectHash.delay;}else{return 0;}}).duration(function(){if(objectHash.duration){return objectHash.duration;}else{return 0;}});
 		}
 		<!--Draw hexagon-->
 		<!--Draw polygon-->
@@ -3426,13 +3442,13 @@
 		<!--Draw circle-->
 		function drawCircle (IDtoDrawOn,objectHash,currentWidth,currentHeight) {
 			currentRadius = Math.min(currentWidth,currentHeight);
-			d3.select(IDtoDrawOn).append("circle").attr("cx",function(){return objectHash.x*currentWidth;}).attr("cy",function(){return objectHash.y*currentHeight;}).attr("r",function(){return objectHash.radius*currentRadius;}).attr("filter",function(){if(objectHash.filter){return "url(#NeonGlow)";}else{return null;}}).attr("fill",function(){if (objectHash.fill){return objectHash.fill;}else{return "DimGray";}}).attr("fill-opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).attr("stroke",function(){if (objectHash.stroke){return objectHash.stroke;}else{return "DimGray";}}).attr("stroke-opacity",function(){if (objectHash.strokeOpacity){return Math.sqrt(objectHash.strokeOpacity);}else{return 0.71;}}).attr("stroke-width",function(){if (objectHash.width){return objectHash.width;}else{return 2;}}).attr("id",function(){if (objectHash.id){return objectHash.id;}}).attr("class",function(){if (objectHash.class){return objectHash.class;}}).style("opacity",0).transition().style("opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).delay(function(){if(objectHash.delay){return objectHash.delay;}else{return 0;}}).duration(function(){if(objectHash.duration){return objectHash.duration;}else{return 0;}});
+			d3.select(IDtoDrawOn).append("circle").attr("cx",function(){return objectHash.x*currentWidth;}).attr("cy",function(){return objectHash.y*currentHeight;}).attr("r",function(){return objectHash.radius*currentRadius;}).attr("filter",function(){if(objectHash.filter){return "url(#NeonGlow)";}else{return null;}}).attr("fill",function(){if (objectHash.fill){return objectHash.fill;}else{return "DimGray";}}).attr("fill-opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).attr("stroke",function(){if (objectHash.stroke){return objectHash.stroke;}else{return "DimGray";}}).attr("stroke-opacity",function(){if (objectHash.strokeOpacity){return Math.sqrt(objectHash.strokeOpacity);}else{return 0.71;}}).attr("stroke-width",function(){if (objectHash.width){return objectHash.width;}else{return 2;}}).attr("id",function(){if (objectHash.id){return objectHash.id;}}).attr("class",function(){if (objectHash.class){return objectHash.class;}}).attr("onmouseover",function(){if(objectHash.mouseover){return objectHash.mouseover;}}).attr("onmouseout",function(){if(objectHash.mouseout){return objectHash.mouseout;}}).style("opacity",0).transition().style("opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).delay(function(){if(objectHash.delay){return objectHash.delay;}else{return 0;}}).duration(function(){if(objectHash.duration){return objectHash.duration;}else{return 0;}});
 		}
 		<!--Draw circle-->
 		<!--Draw text-->
 		function drawText (IDtoDrawOn,objectHash,currentWidth,currentHeight) {
 			currentRadius = Math.min(currentWidth,currentHeight);
-			d3.select(IDtoDrawOn).append("text").text(function(){if(objectHash.text){return objectHash.text;}else{return "undefined";}}).attr("x",function(){return objectHash.x*currentWidth;}).attr("y",function(){return objectHash.y*currentHeight;}).attr("font-size",function(){if(objectHash.fontSize){return objectHash.fontSize;}else{return "100px";}}).attr("font-family","sans-serif").attr("text-anchor","middle").attr("filter",function(){if(objectHash.filter){return "url(#NeonGlow)";}else{return null;}}).attr("fill",function(){if (objectHash.fill){return objectHash.fill;}else{return "DimGray";}}).attr("fill-opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).attr("stroke",function(){if (objectHash.stroke){return objectHash.stroke;}else{return "DimGray";}}).attr("stroke-opacity",function(){if (objectHash.strokeOpacity){return Math.sqrt(objectHash.strokeOpacity);}else{return 0.71;}}).attr("stroke-width",function(){if (objectHash.width){return objectHash.width;}else{return 2;}}).attr("id",function(){if (objectHash.id){return objectHash.id;}}).attr("class",function(){if (objectHash.class){return objectHash.class;}}).style("opacity",0).transition().style("opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).delay(function(){if(objectHash.delay){return objectHash.delay;}else{return 0;}}).duration(function(){if(objectHash.duration){return objectHash.duration;}else{return 0;}});
+			d3.select(IDtoDrawOn).append("text").text(function(){if(objectHash.text){return objectHash.text;}else{return "undefined";}}).attr("x",function(){return objectHash.x*currentWidth;}).attr("y",function(){return objectHash.y*currentHeight;}).attr("font-size",function(){if(objectHash.fontSize){return objectHash.fontSize;}else{return "100px";}}).attr("font-family","sans-serif").attr("text-anchor","middle").attr("filter",function(){if(objectHash.filter){return "url(#NeonGlow)";}else{return null;}}).attr("fill",function(){if (objectHash.fill){return objectHash.fill;}else{return "DimGray";}}).attr("fill-opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).attr("stroke",function(){if (objectHash.stroke){return objectHash.stroke;}else{return "DimGray";}}).attr("stroke-opacity",function(){if (objectHash.strokeOpacity){return Math.sqrt(objectHash.strokeOpacity);}else{return 0.71;}}).attr("stroke-width",function(){if (objectHash.width){return objectHash.width;}else{return 2;}}).attr("transform",function(){if(objectHash.transform){return objectHash.transform;}}).attr("id",function(){if (objectHash.id){return objectHash.id;}}).attr("class",function(){if (objectHash.class){return objectHash.class;}}).attr("onmouseover",function(){if(objectHash.mouseover){return objectHash.mouseover;}}).attr("onmouseout",function(){if(objectHash.mouseout){return objectHash.mouseout;}}).style("opacity",0).transition().style("opacity",function(){if (objectHash.opacity){return Math.sqrt(objectHash.opacity);}else{return 0.71;}}).delay(function(){if(objectHash.delay){return objectHash.delay;}else{return 0;}}).duration(function(){if(objectHash.duration){return objectHash.duration;}else{return 0;}});
 		}
 		<!--Draw text-->
 		<!--Draw path-->
@@ -4109,6 +4125,1477 @@
 			return result;
 		}
 		<!--New Modes for SNV db (MutDB)-->
+		<!--Ordinator-->
+		function ordinatorRotate (pointArray,angleArray) {
+			var sin = Math.sin;
+			var cos = Math.cos;
+			var angleToRadian = Math.PI*2/360;
+			
+			var zeta = angleArray[0]*angleToRadian;
+			var beta = angleArray[1]*angleToRadian;
+			var theta = angleArray[2]*angleToRadian;
+			
+			var x = pointArray[0];
+			var y = pointArray[1];
+			var z = pointArray[2];
+			
+			var xPrime =(x*cos(theta)*cos(beta)+y*cos(beta)*sin(theta)-z*sin(beta));
+			var yPrime = (x*(cos(theta)*sin(beta)*sin(zeta)-sin(theta)*cos(zeta))+y*(cos(theta)*cos(zeta)+sin(theta)*sin(beta)*sin(zeta))+z*cos(beta)*sin(zeta));
+			var zPrime = (x*(sin(theta)*sin(zeta)+cos(theta)*cos(zeta)*sin(beta))+y*(cos(zeta)*sin(theta)*sin(beta)-cos(theta)*sin(zeta))+z*cos(beta)*cos(zeta));
+			var resultArray = [0,0,0,0];
+			
+			resultArray[0] = xPrime;
+			resultArray[1] = yPrime;
+			resultArray[2] = zPrime;
+			resultArray[3] = pointArray[3];
+			return resultArray;
+		}
+		function ordinatorMap2D(pointArray) {
+			var sin = Math.sin;
+			var cos = Math.cos;
+			zAngle = Math.PI/2;
+			
+			var z = pointArray[2];
+			var x = (pointArray[0]-z*cos(zAngle));
+			var y = (pointArray[1]+z*sin(zAngle));
+			var resultArray = [0,0,0];
+			
+			resultArray[0] = x;
+			resultArray[1] = y;
+			resultArray[2] = pointArray[3];
+			
+			return resultArray;
+		}
+		function ordinatorFetchData (X,Y,Z) {
+			//The below hash has a duplicate in the ordinator function.
+			var aminoacidsX = {"A":["Alanine","Nonpolar"],"R":["Arginine","Positive"],"N":["Asparagine","Polar"],"D":["Aspartic-Acid","Negative"],"C":["Cysteine","Polar"],"Q":["Glutamine","Polar"],"E":["Glutamic-Acid","Negative"],"G":["Glycine","Nonpolar"],"H":["Histidine","Positive"],"I":["Isoleucine","Nonpolar"],"L":["Leucine","Nonpolar"],"K":["Lysine","Positive"],"M":["Methionine","Nonpolar"],"F":["Phenylalanine","Aromatic"],"P":["Proline","Nonpolar"],"S":["Serine","Polar"],"T":["Threonine","Polar"],"W":["Tryptophan","Aromatic"],"Y":["Tyrosine","Aromatic"],"V":["Valine","Nonpolar"],"X":["Stop","Stop"]};
+			//has a copy in the global scope as well
+			var aminoacids_OtherProperties = {"A":["Hydrophobic","Aliphatic"],"R":["Hydrophilic","H-bonding","Basic","Ionizable"],"N":["Hydrophilic"],"D":["Hydrophilic","H-bonding","Acidic","Ionizable"],"C":["Hydrophilic","H-bonding","Sulfur-containing","Acidic","Ionizable","Disulfide-bond"],"Q":["Hydrophilic","H-bonding"],"E":["Hydrophilic","H-bonding","Acidic","Ionizable"],"G":["Hydrophobic","Aliphatic"],"H":["Hydrophilic","H-bonding","Basic","Ionizable","All-aromatic"],"I":["Hydrophobic","Aliphatic"],"L":["Hydrophobic","Aliphatic"],"K":["Hydrophilic","H-bonding","Basic","Ionizable"],"M":["Hydrophobic","Sulfur-containing"],"F":["Hydrophobic","All-aromatic"],"P":["Hydrophobic","Aliphatic","Cyclic"],"S":["Hydrophilic","H-bonding"],"T":["Hydrophilic","H-bonding"],"W":["Hydrophobic","H-bonding","All-aromatic"],"Y":["Hydrophobic","H-bonding","Ionizable","All-aromatic"],"V":["Hydrophobic","Aliphatic"]};
+			//store precomputed values
+			!ordinatorFetchData.preComputed ? ordinatorFetchData.preComputed = {} : void(0);
+			//options for different functions to choose from
+			var options = {
+				polyphen2:polyphen2,
+				sift:sift,
+				position:getPos,
+				chemicalType:getType,
+				altType:getAltType,
+				AAtype:getAAtype,
+				altAAtype:getAltAAtype,
+				hydro:hydro,
+				altHydro:altHydro,
+				avgPrediction:getAvgScore,
+				aaChange:getAAchangeScore,
+				domain:getDomainType,
+				customdb:getCustomDB,
+				MAF:getMAF,
+				conservation:getConservation,
+				aggregateFeature:aggregateFeature,
+				hist1:hist1,
+				hist2:hist2,
+				hist3:hist3
+			};
+			//conservation
+			var minMaxCons = [0,0];
+			for (var i =0;i<ids["con"].length;i++){
+				minMaxCons[0] = +ids["con"][i].replace(/.*_/,"") < minMaxCons[0]? +ids["con"][i].replace(/.*_/,""):minMaxCons[0];
+				minMaxCons[1] = +ids["con"][i].replace(/.*_/,"") > minMaxCons[1]? +ids["con"][i].replace(/.*_/,""):minMaxCons[1];
+			}
+			//for uploaded files. The registeredHistograms look like this: [[[ArrayOfPoints],ID],..]. New files are unshifted, old ones are popped. Max array length is 3.
+			var hist1 =[];
+			var hist2 =[];
+			var hist3 =[];
+			var offset = registeredHistogramID-registeredHistograms.length;
+			for (var i = 1;i<4;i++) {
+				if(registeredHistograms.filter(function(d){return d[1]===((i+offset+3)%3)})[0] !== undefined) {
+					//console.log("passed");
+					eval("hist"+i+" = registeredHistograms.filter(function(d){return d[1]==="+((i+offset+3)%3)+"})[0][0]");
+				}
+			}
+			var checkSum = (hist1.length+hist2.length+hist3.length-(ids["con"].length*3))%(ids["con"].length);
+			if (checkSum !== 0) {
+				alert("Some of your histogram(s) may have different number of rows than the residue count. Please correct the files and reupload them.");
+			}
+			var minMaxHist1 = [0,0];
+			var minMaxHist2 = [0,0];
+			var minMaxHist3 = [0,0];
+			for (var i =0;i<ids["con"].length;i++){
+				minMaxHist1[0] = +hist1[i] < minMaxHist1[0]? +hist1[i] : minMaxHist1[0];
+				minMaxHist1[1] = +hist1[i] > minMaxHist1[1]? +hist1[i] : minMaxHist1[1];
+				minMaxHist2[0] = +hist2[i] < minMaxHist2[0]? +hist2[i] : minMaxHist2[0];
+				minMaxHist2[1] = +hist2[i] > minMaxHist2[1]? +hist2[i] : minMaxHist2[1];
+				minMaxHist3[0] = +hist3[i] < minMaxHist3[0]? +hist3[i] : minMaxHist3[0];
+				minMaxHist3[1] = +hist3[i] > minMaxHist3[1]? +hist3[i] : minMaxHist3[1];
+			}
+			
+			//populate points
+			var args = {points:[],labels:[],labelNames:[]};
+			ids["mut"].forEach(function(d,i){
+				args.points.push([options[X](d),-options[Y](d),options[Z](d),i]);	
+			});
+			//populate labels
+			for (var i=0;i<3;i++) {
+				args.labels.push(options[arguments[i]](0,"label"));
+				args.labelNames.push(arguments[i]);
+			}
+			return args;
+			
+			//different functions below, retreived from the options hash
+			function polyphen2(element,type) {
+				if (type !== "label" && (Number(d3.select(element).attr("polyphen2"))>=0)) {
+					return Number(d3.select(element).attr("polyphen2"));
+				} else if (type !== "label") {
+					return -0.5;
+				} else {
+					return [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+				}
+			}
+			function sift(element,type) {
+				if (type !== "label" && (Number(d3.select(element).attr("sift"))>=0)) {
+					return Math.round((1-Number(d3.select(element).attr("sift")))*1000)/1000;
+				} else if (type !== "label") {
+					return -0.5;
+				} else {
+					return [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+				}
+			}
+			function getPos(element,type) {
+				if (type !== "label") {
+					return Math.round(parseInt(d3.select(element).attr("id").slice(1))/fasta_sorted.length*1000)/1000;
+				} else {
+					return [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+				}
+			}
+			function getType(element,type) {
+				if (type !== "label") {
+					return ({"Nonpolar":0.167,"Polar":0.334,"Negative":0.501,"Positive":0.668,"Aromatic":0.835})[aminoacids[d3.select(element).attr("id").slice(0,1)][1]];
+				} else {
+					return ["Nonpolar","Polar","Negative","Positive","Aromatic","Stop"];
+				}
+			}
+			function getAltType(element,type) {
+				if (type !== "label" && d3.select(element).attr("id").replace(/_rsID.*/,"").slice(-1) !== "X") {
+					return ({"Nonpolar":0.167,"Polar":0.334,"Negative":0.501,"Positive":0.668,"Aromatic":0.835})[aminoacids[d3.select(element).attr("id").replace(/_rsID.*/,"").slice(-1)][1]];
+				} else if (type !== "label") {
+					return 1.0;
+				} else {
+					return ["Nonpolar","Polar","Negative","Positive","Aromatic","Stop"];
+				}
+			}
+			function getAAtype(element,type) {
+				if (type !== "label") {
+					return Math.round((1/d3.keys(aminoacids).length*(d3.keys(aminoacids).sort().indexOf(d3.select(element).attr("id").slice(0,1))+1))*1000)/1000;
+				} else {
+					return d3.keys(aminoacids).sort();
+				}
+			}
+			function getAltAAtype(element,type) {
+				//I had a copy of aminoacidsX hash but X comes before Y, so I decided to put the nonsense muts in the end. But the length of aminoacidsX will be the same as array so no need to replace that.
+				var array = d3.keys(aminoacids).sort();
+				array.push("X");
+				if (type !== "label") {
+					return Math.round((1/d3.keys(aminoacidsX).length*(array.indexOf(d3.select(element).attr("id").replace(/_rsID.*/,"").slice(-1))+1))*1000)/1000;
+				} else {
+					return array;
+				}
+			}
+			function getAvgScore(element,type) {
+				var totalScore = 0;
+				var count = 0;
+				if (type !== "label") {
+					d3.keys(predictionDatabase).forEach(function(d,i){
+						if(predictionDatabase[d][2] !== "inverse") {
+							if (Number(d3.select(element).attr(predictionDatabase[d][0]))-predictionDatabase[d][1] >= 0) {
+								totalScore+= (Number(d3.select(element).attr(predictionDatabase[d][0]))-predictionDatabase[d][1])/(1-predictionDatabase[d][1]);
+								count++;
+							} else if (d3.select(element).attr(predictionDatabase[d][0]) !== "NA") {
+								count++;
+							}
+						} else {
+							if (predictionDatabase[d][1]-Number(d3.select(element).attr(predictionDatabase[d][0])) >= 0) {
+								totalScore+= (predictionDatabase[d][1]-Number(d3.select(element).attr(predictionDatabase[d][0])))/(predictionDatabase[d][1]);
+								count++;
+							} else if (d3.select(element).attr(predictionDatabase[d][0]) !== "NA") {
+								count++;
+							}
+						}
+					});
+					if (totalScore >= 0 && count !== 0) {
+						return Math.round(totalScore/count*1000)/1000;
+					} else {
+						return -0.5;
+					}
+				} else {
+					return [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+				}
+			}
+			function getAAchangeScore(element,type) {
+				//The below matrix is arbitrarily set with intention to create least number of classes based on coarse chemical property. It is a diagonal matrix with the row reading: Nonpolar-Polar-Negative-Positive-Aromatic. Use it with caution.
+				var substitutionMatrix = 
+				[[0,0.25,0.5,0.5,0.25],
+				 [0.25,0,0.5,0.5,0.25],
+				 [0.5,0.5,0,0.75,0.5],
+				 [0.5,0.5,0.75,0,0.5],
+				 [0.25,0.25,0.5,0.5,0]];
+				var types = {"Nonpolar":0,"Polar":1,"Negative":2,"Positive":3,"Aromatic":4};
+				if (type !== "label" && d3.select(element).attr("id").replace(/_rsID.*/,"").slice(-1) !== "X") {
+					return substitutionMatrix[types[aminoacids[d3.select(element).attr("id").replace(/_rsID.*/,"").slice(0,1)][1]]][types[aminoacids[d3.select(element).attr("id").replace(/_rsID.*/,"").slice(-1)][1]]];
+				} else if (type !== "label") {
+					return 1;
+				} else {
+					return [0.25,0.5,0.75,1];
+				}
+			}
+			function getDomainType(element,type) {
+				var array = domainList.filter(function(d,i){return d !=="All"}).sort();
+				if (type !== "label" && d3.select(ids["con"][parseInt(d3.select(element).attr("id").slice(1))-1]).attr("class").split(" ")[0] !== "allCons") {
+					return 1/(domainList.length-1)*(array.indexOf(d3.select(ids["con"][parseInt(d3.select(element).attr("id").slice(1))-1]).attr("class").split(" ")[0])+1);
+				} else if (type !== "label") {
+					if (domainList.length > 1) {
+						return 1/(domainList.length-1)*(array.indexOf("Coil")+1);
+					} else {
+						return 1;
+					}
+				} else {
+					return array;
+				}
+			}
+			function getCustomDB (element,type) {
+				var array = MutDB.filter(function(d,i){return d.match(/customdb/i)}).sort();
+				if (type !== "label" && MutDB.some(function(d,i){return d.match(/customdb/i)})) {
+					if (array.indexOf(d3.select(element).attr("dbsource")) !== -1) {
+						return 1/array.length*(array.indexOf(d3.select(element).attr("dbsource"))+1);
+					} else {
+						return -0.5;
+					}
+				} else if (type !== "label") {
+					//alert("Non of your variants have a database source ('dbsource') attribute starting with the 'customdb' keyword.\nTherefore all points on this axis will receive a score of -0.5.");
+					return -0.5;
+				} else {
+					if (array.length <= 0) {
+						return [" "];
+					} else {
+						return array;
+					}
+				}
+			}
+			function getMAF (element,type) {
+				if (type !== "label") {
+					var frequency = +d3.select(element).attr("ipvMAF") || +d3.select(element).attr("ipvmaf");
+					if (frequency < 0) {
+						frequency = 0;
+					} else if (frequency > 1) {
+						frequency = 1;
+					} else if (String(frequency).match(/na/gi)) {
+						frequency = -0.5;
+					}
+					return frequency;
+				} else {
+					return [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+				}
+			}
+			
+			function getConservation (element,type) {
+				if (type !== "label") {
+					var score = +ids["con"][parseInt(d3.select(element).attr("id").slice(1))-1].replace(/.*_/,"");
+					return Math.round((score-minMaxCons[0])/(minMaxCons[1]-minMaxCons[0])*1000)/1000;
+				} else {
+					return [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+				}
+			}
+			function hist1 (element,type) {
+				if(type !== "label") {
+					if (hist1.length === ids["con"].length) {
+						var score = hist1[parseInt(d3.select(element).attr("id").slice(1))-1];
+						return Math.round((score-minMaxHist1[0])/(minMaxHist1[1]-minMaxHist1[0])*1000)/1000;
+					} else {
+						return -0.5;
+					}
+				} else {
+					return [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+				}
+			}
+			function hist2 (element,type) {
+				if(type !== "label") {
+					if (hist2.length === ids["con"].length) {
+						var score = hist2[parseInt(d3.select(element).attr("id").slice(1))-1];
+						return Math.round((score-minMaxHist2[0])/(minMaxHist2[1]-minMaxHist2[0])*1000)/1000;
+					} else {
+						return -0.5;
+					}
+				} else {
+					return [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+				}
+			}
+			function hist3 (element,type) {
+				if(type !== "label") {
+					if (hist3.length === ids["con"].length) {
+						var score = hist3[parseInt(d3.select(element).attr("id").slice(1))-1];
+						return Math.round((score-minMaxHist3[0])/(minMaxHist3[1]-minMaxHist3[0])*1000)/1000;
+					} else {
+						return -0.5;
+					}
+				} else {
+					return [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+				}
+			}
+			function hydro (element,type) {
+				if (type !== "label") {
+					if(aminoacids_OtherProperties[d3.select(element).attr("id").slice(0,1)].some(function(x){return x==="Hydrophilic"})) {
+						return 1;
+					} else if (aminoacids_OtherProperties[d3.select(element).attr("id").slice(0,1)].some(function(x){return x==="Hydrophobic"})) {
+						return 0.5;
+					} else {
+						return -0.5;
+					}
+				} else {
+					return ["Hydrophobic","Hydrophilic"];
+				}
+			}
+			
+			function altHydro (element,type) {
+				if (type !== "label") {
+					if (d3.select(element).attr("id").replace(/_rsID.*/,"").slice(-1)==="X") {
+						return -0.5;
+					}else if(aminoacids_OtherProperties[d3.select(element).attr("id").replace(/_rsID.*/,"").slice(-1)].some(function(x){return x==="Hydrophilic"})) {
+						return 1;
+					} else if (aminoacids_OtherProperties[d3.select(element).attr("id").replace(/_rsID.*/,"").slice(-1)].some(function(x){return x==="Hydrophobic"})) {
+						return 0.5;
+					} else {
+						return -0.5;
+					}
+				} else {
+					return ["Hydrophobic","Hydrophilic"];
+				}
+			}
+			
+			function aggregateFeature (element,type) {
+				if (type !== "label") {
+					return (ordinatorFetchData.preComputed.segmentVector || initAggregation())[parseInt(d3.select(element).attr("id").slice(1))-1];
+				} else {
+					return [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+				}
+			}
+			
+			function initAggregation () {
+				var matrixColumns = ["Nonpolar","Polar","Positive","Negative","Aromatic","All-aromatic","Aliphatic","Cyclic","Hydrophobic","Hydrophilic","Acidic","Basic","Ionizable","H-bonding","Disulfide-bond","Sulfur-containing"].sort();
+				(function(){
+					var array = d3.keys(aminoacidsX).sort();
+					array.splice(-2,1);
+					for (var i =array.length-1;i>=0;i--){
+						matrixColumns.unshift(array[i]);
+					}
+				})();
+				var segmentVector = [];
+				var _ceiling_ = Math.PI*Math.PI/3;
+				for (var i=0,total=_ceiling_;i<fasta_sorted.length;i++) {
+					total=_ceiling_;
+					for (var j=1;j<11;j++) {
+						if(i-j>=0) {
+							total -= vecDist(calculateRow(fasta_sorted[i]),calculateRow(fasta_sorted[i-j]))/13/Math.pow(j,2);
+						}
+						if(i+j<fasta_sorted.length) {
+							total -= vecDist(calculateRow(fasta_sorted[i]),calculateRow(fasta_sorted[i+j]))/13/Math.pow(j,2);
+						}
+					}
+					segmentVector[i] = +(total/_ceiling_).toFixed(2);
+				}
+				return ordinatorFetchData.preComputed.segmentVector = segmentVector;
+				
+				function calculateRow(a){
+					var vector = [];
+					for (var i=0;i<matrixColumns.length;i++){
+						if (a===matrixColumns[i] || aminoacidsX[a].some(function(d){return d===matrixColumns[i]}) || aminoacids_OtherProperties[a].some(function(d){return d===matrixColumns[i]})) {
+							vector.push(1);
+						} else {
+							vector.push(0);
+						}
+					}
+					return vector;
+				}
+				function vecDist(vec1,vec2) {
+					var result =  0;
+					for (var i=0;i<vec1.length;i++) {
+						result += Math.abs(vec1[i]-vec2[i]);
+					}
+					return result;
+				}
+			}
+		}
+		
+		//keep a reference to update setInterval functions
+		var intervalButtons;
+		var intervalHighlight;
+		function ordinator(ID,args){
+			var labels = args.labels;
+			var labelNames = args.labelNames;
+			var points = args.points;
+			//Just keep reference to show x,y,z values when mouseover, also correct the y axis
+			var pointsRef = [];
+			points.forEach(function(d,i){pointsRef[i]= [d[0],-d[1],d[2]];});
+			//get rid of any trace lines if any
+			d3.select("#"+ID+"_traceLine").remove();
+			//get rid of any previoulsy opened function windows
+			d3.select("#"+ID+"_func").remove();
+			//get rid of any previously initiated setIntervals and registerLinkBoxes
+			d3.selectAll(".ordinator_"+ID+"_registerLinkBoxes").remove();
+			clearInterval(intervalButtons);
+			clearInterval(intervalHighlight);
+			//below, same as in Lotus function.
+			var aaSymbols = {Nonpolar:[_drawCircle_,"Gray"],Polar:[_drawCircle_,"DeepPink"],Positive:[_drawEqTriangle_,"Red"],Negative:[_drawEqTriangle_,"Blue"],Aromatic:[_drawHexagon_,"Green"],Stop:[_drawText_,"Orange"]};
+			//a copy of the aminoacids hash, it has X
+			var aminoacidsX = {"A":["Alanine","Nonpolar"],"R":["Arginine","Positive"],"N":["Asparagine","Polar"],"D":["Aspartic-Acid","Negative"],"C":["Cysteine","Polar"],"Q":["Glutamine","Polar"],"E":["Glutamic-Acid","Negative"],"G":["Glycine","Nonpolar"],"H":["Histidine","Positive"],"I":["Isoleucine","Nonpolar"],"L":["Leucine","Nonpolar"],"K":["Lysine","Positive"],"M":["Methionine","Nonpolar"],"F":["Phenylalanine","Aromatic"],"P":["Proline","Nonpolar"],"S":["Serine","Polar"],"T":["Threonine","Polar"],"W":["Tryptophan","Aromatic"],"Y":["Tyrosine","Aromatic"],"V":["Valine","Nonpolar"],"X":["Stop","Stop"]};
+			//extract the wildtype and the mutated amino acids
+			var wildtypeAndMutated = [];
+			ids["mut"].forEach(function(d,i){var wtMt = [];wtMt.push(d.slice(1,2));wtMt.push(d.replace(/_rsID.*/,"").slice(-1));wildtypeAndMutated.push(wtMt);});
+			//extract the point names from ids, saves bit of computation
+			var pointNames = [];
+			var pointLocations = [];
+			ids["mut"].forEach(function(d,i){pointNames.push(d.replace(/\#|_rsID.*/g,""));pointLocations.push(parseInt(d.slice(2)))});
+			//keep reference to the volumes/links if any
+			var links = [];
+			var linksColors = [];
+			var linksAlphas = [];
+			var linkCounter = 0;
+			//tracks whether the user is linking or just started linking
+			var linkingStatus = 0;
+			var glyphOrigin = 0;
+			var dragStartX;
+			var dragStartY;
+			var currentRotateX = 0;
+			var currentRotateY = 45;
+			var currentRotateZ = 0;
+			var width = Number(d3.select("#"+ID).attr("width"));
+			var height = Number(d3.select("#"+ID).attr("height"));
+			var wTimesH = width*height; 
+			var widthTranslate = 1/2;
+			var heightTranslate = 1/2;
+			var widthScale = 1/3;
+			var heightScale = 1/6;
+			var fontSize = wTimesH/70000;
+			var glyphMultiplier = 1;
+			var showTraceLine = 0;
+			var showLabels  = 0;
+			//***Filter parameters***
+			var regions = [(1+fasta_sorted.length)/2-25,(1+fasta_sorted.length)/2+25];
+			//amino acid keys for filtering [[wildtype],[mutated]]
+			var filterAA = [[],[]];
+			(function(){var array = d3.keys(aminoacids);var arrayX = d3.keys(aminoacidsX);array.forEach(function(d,i){filterAA[0][i]=[d,"on"];});arrayX.forEach(function(d,i){filterAA[1][i]=[d,"on"];})})();
+			var filterNA = 1;
+			var filterSynonymous = 1;
+			//***Filter parameters***
+			
+			//***filter the points before you render them***
+			args = filterOrdinator(points);
+			//***filter the points before you render them***
+			
+			//store//
+			//aaSymbols[aminoacidsX[wildtypeAndMutated[points[i][3]][glyphOrigin]][1]][0]
+			var stored = [wildtypeAndMutated.map(function(d,i){return aaSymbols[aminoacidsX[d[0]][1]][0]}),wildtypeAndMutated.map(function(d,i){return aaSymbols[aminoacidsX[d[1]][1]][0]})];
+			var storedColor = [wildtypeAndMutated.map(function(d,i){return aaSymbols[aminoacidsX[d[0]][1]][1]}),wildtypeAndMutated.map(function(d,i){return aaSymbols[aminoacidsX[d[1]][1]][1]})];
+			//store//
+			
+			//Drawing API, exclusive to Indoril/Ordinator
+			<!--Draw equilateral triangle with given radius measured as the distance from center of gravity to one corner-->
+				//the x,y and r values are between 0 and 1, they represent the full width and the height of whatever container they are drawn in
+			function _drawEqTriangle_ (IDtoDrawOn,objectHash,currentWidth,currentHeight) {
+				var currentRadius = Math.min(currentWidth,currentHeight);
+				var r = objectHash[0];
+				var x = objectHash[1];
+				var y = objectHash[2];
+				//d3.select(IDtoDrawOn).append("polygon").attr("points",function(){return (x*currentWidth)+","+(y*currentHeight-r*currentRadius)+" "+(x*currentWidth+r*currentRadius/2*Math.sqrt(3))+","+(y*currentHeight+r*currentRadius/2)+" "+(x*currentWidth-r*currentRadius/2*Math.sqrt(3))+","+(y*currentHeight+r*currentRadius/2);}).attr("stroke-linejoin","round").attr("fill",objectHash[3]).attr("fill-opacity",objectHash[5]).attr("stroke",objectHash[4]).attr("stroke-opacity",objectHash[5]).attr("stroke-width",2).attr("id",objectHash[8]).attr("class","ordinatorPoints").attr("onmouseover",objectHash[9]).attr("onmouseout",objectHash[10]);
+				shapeMaker.make("polygon",IDtoDrawOn)("points",(x*currentWidth)+","+(y*currentHeight-r*currentRadius)+" "+(x*currentWidth+r*currentRadius/2*Math.sqrt(3))+","+(y*currentHeight+r*currentRadius/2)+" "+(x*currentWidth-r*currentRadius/2*Math.sqrt(3))+","+(y*currentHeight+r*currentRadius/2))("stroke-linejoin","round")("fill",objectHash[3])("fill-opacity",objectHash[5])("stroke",objectHash[4])("stroke-opacity",objectHash[5])("stroke-width",2)("id",objectHash[8])("class","ordinatorPoints")("onmouseover",objectHash[9])("onmouseout",objectHash[10]);
+			}
+			<!--Draw equilateral triangle with given radius measured as the distance from center of gravity to one corner-->
+			<!--Draw hexagon-->
+			function _drawHexagon_ (IDtoDrawOn,objectHash,currentWidth,currentHeight) {
+				var currentRadius = Math.min(currentWidth,currentHeight);
+				var r = objectHash[0];
+				var x = objectHash[1];
+				var y = objectHash[2];
+				//d3.select(IDtoDrawOn).append("polygon").attr("points",function(){return (x*currentWidth+r*currentRadius/2)+","+(y*currentHeight-r*currentRadius/2*Math.sqrt(3))+" "+(x*currentWidth+r*currentRadius)+","+(y*currentHeight)+" "+(x*currentWidth+r*currentRadius/2)+","+(y*currentHeight+r*currentRadius/2*Math.sqrt(3))+" "+(x*currentWidth-r*currentRadius/2)+","+(y*currentHeight+r*currentRadius/2*Math.sqrt(3))+" "+(x*currentWidth-r*currentRadius)+","+(y*currentHeight)+" "+(x*currentWidth-r*currentRadius/2)+","+(y*currentHeight-r*currentRadius/2*Math.sqrt(3));}).attr("stroke-linejoin","round").attr("fill",objectHash[3]).attr("fill-opacity",objectHash[5]).attr("stroke",objectHash[4]).attr("stroke-opacity",objectHash[5]).attr("stroke-width",2).attr("id",objectHash[8]).attr("class","ordinatorPoints").attr("onmouseover",objectHash[9]).attr("onmouseout",objectHash[10]);
+				shapeMaker.make("polygon",IDtoDrawOn)("points",(x*currentWidth+r*currentRadius/2)+","+(y*currentHeight-r*currentRadius/2*Math.sqrt(3))+" "+(x*currentWidth+r*currentRadius)+","+(y*currentHeight)+" "+(x*currentWidth+r*currentRadius/2)+","+(y*currentHeight+r*currentRadius/2*Math.sqrt(3))+" "+(x*currentWidth-r*currentRadius/2)+","+(y*currentHeight+r*currentRadius/2*Math.sqrt(3))+" "+(x*currentWidth-r*currentRadius)+","+(y*currentHeight)+" "+(x*currentWidth-r*currentRadius/2)+","+(y*currentHeight-r*currentRadius/2*Math.sqrt(3)))("stroke-linejoin","round")("fill",objectHash[3])("fill-opacity",objectHash[5])("stroke",objectHash[4])("stroke-opacity",objectHash[5])("stroke-width",2)("id",objectHash[8])("class","ordinatorPoints")("onmouseover",objectHash[9])("onmouseout",objectHash[10]);
+			}
+			<!--Draw hexagon-->
+			<!--Draw circle-->
+			function _drawCircle_ (IDtoDrawOn,objectHash,currentWidth,currentHeight) {
+				var currentRadius = Math.min(currentWidth,currentHeight);
+				var r = objectHash[0];
+				var x = objectHash[1];
+				var y = objectHash[2];
+				//d3.select(IDtoDrawOn).append("circle").attr("cx",x*currentWidth).attr("cy",y*currentHeight).attr("r",r*currentRadius).attr("fill",objectHash[3]).attr("fill-opacity",objectHash[5]).attr("stroke",objectHash[4]).attr("stroke-opacity",objectHash[5]).attr("stroke-width",2).attr("id",objectHash[8]).attr("class","ordinatorPoints").attr("onmouseover",objectHash[9]).attr("onmouseout",objectHash[10]);
+				shapeMaker.make("circle",IDtoDrawOn)("cx",x*currentWidth)("cy",y*currentHeight)("r",r*currentRadius)("fill",objectHash[3])("fill-opacity",objectHash[5])("stroke",objectHash[4])("stroke-opacity",objectHash[5])("stroke-width",2)("id",objectHash[8])("class","ordinatorPoints")("onmouseover",objectHash[9])("onmouseout",objectHash[10]);
+			}
+			<!--Draw circle-->
+			<!--Draw text-->
+			function _drawText_ (IDtoDrawOn,objectHash,currentWidth,currentHeight) {
+				var currentRadius = Math.min(currentWidth,currentHeight);
+				var r = objectHash[0];
+				var x = objectHash[1];
+				var y = objectHash[2];
+				//d3.select(IDtoDrawOn).append("text").text(objectHash[6]).attr("x",x*currentWidth).attr("y",y*currentHeight).attr("font-size",objectHash[7]).attr("font-family","sans-serif").attr("text-anchor","middle").attr("fill",objectHash[3]).attr("fill-opacity",objectHash[5]).attr("stroke",objectHash[4]).attr("stroke-opacity",objectHash[5]).attr("stroke-width",2).attr("id",objectHash[8]).attr("class","ordinatorPoints").attr("onmouseover",objectHash[9]).attr("onmouseout",objectHash[10]);
+				shapeMaker.make("text",IDtoDrawOn)("x",x*currentWidth)("y",y*currentHeight)("font-size",objectHash[7])("font-family","sans-serif")("text-anchor","middle")("fill",objectHash[3])("fill-opacity",objectHash[5])("stroke",objectHash[4])("stroke-opacity",objectHash[5])("stroke-width",2)("id",objectHash[8])("class","ordinatorPoints")("onmouseover",objectHash[9])("onmouseout",objectHash[10])().textContent = objectHash[6];
+			}
+			<!--Draw text-->
+			<!--Path string generator-->
+			function pathStringGenerator(objectHash,currentWidth,currentHeight) {
+				return "M"+(objectHash[0]*currentWidth)+","+(objectHash[1]*currentHeight)+"L"+(objectHash[2]*currentWidth)+","+(objectHash[3]*currentHeight);
+			}
+			<!--Path string generator-->
+			<!--Draw axis text-->
+			function _drawAxisText_ (IDtoDrawOn,objectHash,currentWidth,currentHeight) {
+				var currentRadius = Math.min(currentWidth,currentHeight);
+				var x = objectHash[0];
+				var y = objectHash[1];
+				//d3.select(IDtoDrawOn).append("text").text(objectHash[5]).attr("x",x*currentWidth).attr("y",y*currentHeight).attr("font-size",objectHash[6]).attr("font-family","sans-serif").attr("text-anchor","middle").attr("fill",objectHash[2]).attr("fill-opacity",objectHash[4]).attr("stroke",objectHash[3]).attr("stroke-opacity",objectHash[4]).attr("stroke-width",2).attr("transform",objectHash[7]);
+				shapeMaker.make("text",IDtoDrawOn)("x",x*currentWidth)("y",y*currentHeight)("font-size",objectHash[6])("font-family","sans-serif")("text-anchor","middle")("fill",objectHash[2])("fill-opacity",objectHash[4])("stroke",objectHash[3])("stroke-opacity",objectHash[4])("stroke-width",2)("transform",objectHash[7] || "")().textContent = objectHash[5];
+			}
+			<!--Draw axis text-->
+			//Drawing API, exclusive to Indoril/Ordinator
+			
+			//Container for the 3D points
+			d3.select("#"+ID).append("g").attr("id",ID+"_ordinatorPointsContainer");
+			d3.select("#"+ID).append("g").attr("id",ID+"_ordinatorAxesContainer");
+			var container = "#"+ID+"_ordinatorPointsContainer";
+			var containerAxes = "#"+ID+"_ordinatorAxesContainer";
+			var containerElem = d3.select(container).node();
+			var containerAxesElem = d3.select(containerAxes).node();
+			//Container for the 3D points
+			
+			//An alternative to d3 for making elements 1 by 1
+			var shapeMaker = (function(){
+				function maker(){
+					var _this_ = this; 
+					this.attr = function(name,value){if (!name){return this;}this.setAttribute(name,value);return _this_.attr.bind(this);} ;
+					this.make = function(el,containerNode){var el = document.createElementNS("http://www.w3.org/2000/svg",el); containerNode.appendChild(el); return this.attr.bind(el)};
+				} 
+			return new maker;
+			})()
+			//An alternative to d3 for making elements 1 by 1
+			
+			renderAxes._ready_ = true;
+			renderGlyphs._ready_ = true;
+			renderOrdinatorGUI (ID);
+			renderAxes([0,45,0]);
+			renderGlyphs(args,[0,45,0]);
+			
+			var dragOrdinator = d3.behavior.drag().on("drag", dragOrdinatorFunc).on("dragstart",function (){d3.event.sourceEvent.stopPropagation();dragStartX=coordinates[0];dragStartY=coordinates[1];}).on("dragend",function(){currentRotateX = (currentRotateX+(coordinates[1]-dragStartY)/height*360)%360;currentRotateY = (currentRotateY-(coordinates[0]-dragStartX)/width*360)%360;});
+			function dragOrdinatorFunc() {
+				var rotateY = currentRotateY-(+d3.event.x-dragStartX)/width*360;
+				var rotateX = currentRotateX+(+d3.event.y-dragStartY)/height*360;
+				d3.select("#"+ID+"_renderXrotate_knob").attr("x",function(){var x = rotateX % 360; if (x < 0){return 220-400/360*x;}else{return 220-400/360*(-360+x);}});
+				d3.select("#"+ID+"_renderYrotate_knob").attr("x",function(){var x = rotateY % 360; if (x < 0){return width-620-400/360*x;}else{return width-620-400/360*(-360+x);}});
+				renderAxes([rotateX,rotateY,currentRotateZ],1);
+				renderGlyphs(args,[rotateX,rotateY,currentRotateZ]);
+			}
+			
+			d3.select("#"+ID).call(dragOrdinator);
+			
+			function renderAxes(angleArray,refresh) {
+				if(renderAxes._ready_){
+					window.requestAnimationFrame(function(){
+						while(containerAxesElem.hasChildNodes()) {
+							containerAxesElem.removeChild(containerAxesElem.lastChild);
+						}
+						d3.select(containerAxes).selectAll("ordinatorAxes").data([[1.1,0,0],[0,-1.1,0],[0,0,1.1]]).enter()
+							.append("path")
+							.attr("d",function(d,i){
+								if (refresh) {
+									return pathStringGenerator([widthTranslate,heightTranslate,ordinatorMap2D(ordinatorRotate(d,angleArray))[0]*widthScale+widthTranslate,ordinatorMap2D(ordinatorRotate(d,angleArray))[1]*heightScale+heightTranslate],width,height);
+								} else {
+									return pathStringGenerator([widthTranslate,heightTranslate,widthTranslate,heightTranslate],width,height);
+								}
+							})
+							.attr("stroke-width",10)
+							.attr("stroke","Orange")
+							.attr("fill","Orange")
+							.style("opacity",0.75)
+							.style("marker-end","url(#markerTriangle)")
+							.attr("class","ordinatorAxes");
+						
+						if(!refresh){
+							d3.selectAll(".ordinatorAxes")
+							.transition("fadein")
+							.attr("d",function(d,i){return pathStringGenerator([widthTranslate,heightTranslate,ordinatorMap2D(ordinatorRotate(d,angleArray))[0]*widthScale+widthTranslate,ordinatorMap2D(ordinatorRotate(d,angleArray))[1]*heightScale+heightTranslate],width,height);})
+							.delay(0)
+							.duration(1000);
+						}
+						
+						if (showLabels ===1){
+							var i = 3;
+							while (i--) {
+								var length = labels[i].length;
+								var j = length;
+								//Label name placement is better than fixed as below-->drawText("#"+ID,returnObject(labelNames[i],i,(length+1),length),width,height);
+								_drawAxisText_(containerAxesElem,returnObject(labelNames[i],i,12,10),width,height);
+								while (j--) {
+									_drawAxisText_(containerAxesElem,returnObject(labels[i][j],i,j,length),width,height);
+								}
+							}
+						}
+						renderAxes._ready_ = true;
+					})
+				}
+				renderAxes._ready_ = false;
+				
+				//[0]->x,[1]->y,[2]->fill,[3]->stroke,[4]->opacity,[5]->text,[6]->fontSize,[7]->transform
+				function returnObject (point,indexAxis,indexPoint,labelCount) {
+					var rotated = [0,0,0];
+					if (indexAxis === 0) {
+						rotated = ordinatorRotate([(indexPoint+1)*1/labelCount, -0.1,-0.1],angleArray);
+					} else if (indexAxis === 1) {
+						rotated = ordinatorRotate([-0.1,-(indexPoint+1)*1/labelCount,-0.1],angleArray);
+					} else {
+						rotated = ordinatorRotate([-0.1,0.1,(indexPoint+1)*1/labelCount],angleArray);
+					}
+					var mapped = ordinatorMap2D(rotated);
+					var x = mapped[0]*widthScale+widthTranslate;
+					var y = mapped[1]*heightScale+heightTranslate;
+					var transform = null;
+					if (indexAxis === 0) {
+						transform = "rotate(-45,"+x*width+","+y*height+")";
+					} else if (indexAxis === 2) {
+						transform = "rotate(45,"+x*width+","+y*height+")";
+					}
+					var glyphObject = [0,0,"0","0",0,"0",0,"0"];
+					//x
+					glyphObject[0] = x;
+					//y
+					glyphObject[1] = y;
+					//fill
+					glyphObject[2] = "Orange";
+					//stroke
+					glyphObject[3] = "Orange";
+					//opacity
+					glyphObject[4] = 0.4+(rotated[2]+1)/2*0.6;
+					//text
+					glyphObject[5] = point;
+					//fontSize
+					glyphObject[6] = fontSize/2;
+					//transform
+					glyphObject[7] = transform;
+					return glyphObject;
+				}
+			}
+			
+			function renderGlyphs (args,angleArray) {
+				if(renderGlyphs._ready_){
+					window.requestAnimationFrame(function() {
+						var points = [];
+						var length = args.length;
+						var i = length;
+						while (i--) {
+							points[i] = ordinatorRotate(args[i],angleArray);
+						}
+						points.sort(function(a,b){return b[2]-a[2]});
+						 
+						while(containerElem.hasChildNodes()) {
+							containerElem.removeChild(containerElem.lastChild);
+						}
+						i = length;
+						while (i--) {
+							stored[glyphOrigin][points[i][3]](containerElem,returnObject(points[i]),width,height);
+							registerClick(i);
+						}
+						
+						if (showTraceLine===1) {
+							drawTraceLine(args,angleArray,1);
+						}
+						renderPseudoPoly(angleArray);
+						renderGlyphs._ready_ = true;
+						
+						function registerClick (index) {
+							document.getElementById("ordinatorPoint_"+ID+"_"+points[index][3]).addEventListener("click",function(){registerLinks(points[index])},false);
+						}
+					})
+				}
+				renderGlyphs._ready_ = false;
+				
+				//[0]->radius,[1]->x,[2]->y,[3]->fill,[4]->stroke,[5]->opacity,[6]->text,[7]->fontSize,[8]->id
+				//[9]->mouseover,[10]->mouseout
+				function returnObject (point) {
+					var id = "ordinatorPoint_"+ID+"_"+point[3];
+					var mapped = ordinatorMap2D(point);
+					var x = mapped[0]*widthScale+widthTranslate;
+					var y = mapped[1]*heightScale+heightTranslate;
+					var color = storedColor[glyphOrigin][point[3]];
+					var text = wildtypeAndMutated[point[3]]; 
+					var glyphObject = [0,0,0,"0","0",0,"0",0,"0","0","0"];
+					//radius
+					glyphObject[0] = (0.005+(point[2]+2)/3*0.005)*glyphMultiplier;
+					//x
+					glyphObject[1] = x;
+					//y
+					glyphObject[2] = y;
+					//fill
+					glyphObject[3] = color;
+					//stroke
+					glyphObject[4] = color;
+					//opacity
+					glyphObject[5] = 0.4+(point[2]+1)/2*0.6;
+					//text
+					glyphObject[6] = text[1];
+					//fontSize
+					glyphObject[7] = fontSize;
+					//id
+					glyphObject[8] = id;
+					//mouseover
+					glyphObject[9] = "d3.select('#ordinatorPointsTextLabel').remove();d3.select('#"+id+"').attr('stroke-width',25).attr('stroke','Orange');d3.select('#"+ID+"').append('text').text('p."+pointNames[point[3]]+" ("+pointsRef[point[3]]+")"+"').attr('id','ordinatorPointsTextLabel').attr('x',"+(x>1/2?x-0.05:x+0.05)*width+").attr('y',"+(y>1/2?y-0.05:y+0.05)*height+").attr('font-size',"+fontSize+").attr('font-family','sans-serif').attr('fill','AntiqueWhite').attr('text-anchor','middle');";
+					//mouseout
+					glyphObject[10] = "d3.select('#"+id+"').attr('stroke-width',2).attr('stroke','"+color+"');d3.select('#ordinatorPointsTextLabel').remove();";
+					return glyphObject;
+				}
+			}
+			
+			function renderOrdinatorGUI (ID) {
+				renderXrotate(ID);
+				renderYrotate(ID);
+				renderZrotate(ID);
+				renderSlider(ID);
+				renderAADials(ID,0);
+				renderAADials(ID,1);
+				renderAAmassDials (ID,0);
+				renderAAmassDials (ID,1);
+				renderShowModules(ID);
+				renderSizeControls(ID);
+				
+				//***axes functions***
+				function renderXrotate (ID) {
+					d3.selectAll("."+ID+"_renderXrotate").remove();
+					d3.select("#"+ID).append("path").attr("class",function(){return ID+"_renderXrotate";}).attr("d","M100,307 A50,50 0 1,1 150,357").style("marker-end","url(#markerTriangle)").attr("stroke-opacity",0).attr("stroke-width",4).attr("fill-opacity",0).attr("stroke","Orange").transition("fadein").attr("stroke-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("text").text("x").attr("class",function(){return ID+"_renderXrotate";}).attr("x",150).attr("y",315).attr("font-size","60px").attr("font-family","sans-serif").attr("text-anchor","middle").attr("fill","Orange").attr("fill-opacity",0).transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderXrotate";}).attr("x",220).attr("y",300).attr("width",400).attr("height",15).attr("rx",15).attr("ry",15).attr("fill-opacity",0).attr("fill","Orange").transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					var drag = d3.behavior.drag().origin(function(){var x = +d3.select(this).attr("x"); var y = +d3.select(this).attr("y"); return {"x":x,"y":y};}).on("drag", dragFunc).on("dragstart",function (){d3.event.sourceEvent.stopPropagation();});
+					function dragFunc() {
+						var knobXpos = Math.max(220,Math.min(620,d3.event.x));
+						d3.select(this).attr("x",knobXpos);
+						var rotateX = -(knobXpos-220)/400*360;
+						currentRotateX = rotateX;
+						renderAxes([rotateX,currentRotateY,currentRotateZ],1);
+						renderGlyphs(args,[rotateX,currentRotateY,currentRotateZ]);
+					}
+					d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderXrotate";}).attr("id",function(){return ID+"_renderXrotate_knob";}).attr("x",220).attr("y",282).attr("width",50).attr("height",50).attr("rx",15).attr("ry",15).attr("fill-opacity",1).attr("fill","Orange").call(drag);
+				}
+				function renderYrotate (ID) {
+					d3.selectAll("."+ID+"_renderYrotate").remove();
+					d3.select("#"+ID).append("path").attr("class",function(){return ID+"_renderYrotate";}).attr("d",function(){var x = width-750; return "M"+x+",307 A50,50 0 1,1 "+(x+50)+",357"}).style("marker-end","url(#markerTriangle)").attr("stroke-opacity",0).attr("stroke-width",4).attr("fill-opacity",0).attr("stroke","Orange").transition("fadein").attr("stroke-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("text").text("y").attr("class",function(){return ID+"_renderYrotate";}).attr("x",function(){return width-700;}).attr("y",315).attr("font-size","60px").attr("font-family","sans-serif").attr("text-anchor","middle").attr("fill","Orange").attr("fill-opacity",0).transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderYrotate";}).attr("x",function(){return width-620;}).attr("y",300).attr("width",400).attr("height",15).attr("rx",15).attr("ry",15).attr("fill-opacity",0).attr("fill","Orange").transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					var drag = d3.behavior.drag().origin(function(){var x = +d3.select(this).attr("x"); var y = +d3.select(this).attr("y"); return {"x":x,"y":y};}).on("drag", dragFunc).on("dragstart",function (){d3.event.sourceEvent.stopPropagation();});
+					function dragFunc() {
+						var xMin = width-620;
+						var knobYpos = Math.max(xMin,Math.min(xMin+400,d3.event.x));
+						d3.select(this).attr("x",knobYpos);
+						var rotateY = -(knobYpos-xMin)/400*360;
+						currentRotateY = rotateY;
+						renderAxes([currentRotateX,rotateY,currentRotateZ],1);
+						renderGlyphs(args,[currentRotateX,rotateY,currentRotateZ]);
+					}
+					d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderYrotate";}).attr("id",function(){return ID+"_renderYrotate_knob";}).attr("x",function(){return width-620;}).attr("y",282).attr("width",50).attr("height",50).attr("rx",15).attr("ry",15).attr("fill-opacity",1).attr("fill","Orange").call(drag);
+				}
+				function renderZrotate (ID) {
+					d3.selectAll("."+ID+"_renderZrotate").remove();
+					d3.select("#"+ID).append("path").attr("class",function(){return ID+"_renderZrotate";}).attr("d","M100,607 A50,50 0 1,1 150,657").style("marker-end","url(#markerTriangle)").attr("stroke-opacity",0).attr("stroke-width",4).attr("fill-opacity",0).attr("stroke","Orange").transition("fadein").attr("stroke-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("text").text("z").attr("class",function(){return ID+"_renderZrotate";}).attr("x",150).attr("y",615).attr("font-size","60px").attr("font-family","sans-serif").attr("text-anchor","middle").attr("fill","Orange").attr("fill-opacity",0).transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderZrotate";}).attr("x",150).attr("y",685).attr("width",15).attr("height",800).attr("rx",15).attr("ry",15).attr("fill-opacity",0).attr("fill","Orange").transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					var drag = d3.behavior.drag().origin(function(){var x = +d3.select(this).attr("x"); var y = +d3.select(this).attr("y"); return {"x":x,"y":y};}).on("drag", dragFunc).on("dragstart",function (){d3.event.sourceEvent.stopPropagation();});
+					function dragFunc() {
+						var knobZpos = Math.max(667,Math.min(667+800,d3.event.y));
+						d3.select(this).attr("y",knobZpos);
+						var rotateZ = -(knobZpos-667)/800*360;
+						currentRotateZ = rotateZ;
+						renderAxes([currentRotateX,currentRotateY,rotateZ],1);
+						renderGlyphs(args,[currentRotateX,currentRotateY,rotateZ]);
+					}
+					d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderZrotate";}).attr("id",function(){return ID+"_renderZrotate_knob";}).attr("x",132).attr("y",667).attr("width",50).attr("height",50).attr("rx",15).attr("ry",15).attr("fill-opacity",1).attr("fill","Orange").call(drag);
+				}
+				//***axes functions***
+				
+				//***slider function***
+				function renderSlider (ID) {
+					var knobThickness = 0.015;
+					var fontSize = 50;
+					d3.selectAll("."+ID+"_regionSlider").remove();
+					sliderTrail(ID);
+					sliderLeftRect(ID);
+					sliderRightRect(ID);
+					silderHighlight(ID);
+					sliderIndicators(ID);
+					function sliderTrail (ID) {
+						d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_regionSlider";}).attr("x",0.1*width).attr("y",0.85*height).attr("width",0.8*width).attr("height",0.004*height).attr("rx",15).attr("ry",15).attr("fill-opacity",0).attr("fill","Orange").transition("fadein").attr("fill-opacity",0.85).delay(0).duration(1000);
+					}
+					function sliderLeftRect (ID) {
+						var drag = d3.behavior.drag().origin(function(){var x = +d3.select(this).attr("x"); var y = +d3.select(this).attr("y"); return {"x":x,"y":y};}).on("drag", dragFunc).on("dragstart",function (){d3.event.sourceEvent.stopPropagation();});
+						function dragFunc() {
+							var knobPos = Math.max((0.1-knobThickness/2)*width,Math.min(((0.1+(regions[1]-1)/(fasta_sorted.length-1)*0.8)-1.5*knobThickness)*width,d3.event.x));
+							d3.select(this).attr("x",knobPos);
+							regions[0] = ((knobPos/width-(0.1-knobThickness/2))*(fasta_sorted.length-1)/0.8)+1;
+							d3.select("#"+ID+"_sliderHighlight").attr("x",function(){return ((0.1+(regions[0]-1)/(fasta_sorted.length-1)*0.8)+knobThickness/2)*width}).attr("width",function(){var w = ((regions[1]-regions[0])/(fasta_sorted.length-1)*0.8-knobThickness)*width; return w>=0?w:0;});
+							d3.select("#"+ID+"_sliderIndicator0").text(Math.round(regions[0])).attr("x",function(){return ((0.1+(regions[0]-1)/(fasta_sorted.length-1)*0.8))*width-2*fontSize;});
+							args = filterOrdinator(points);
+							renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);
+						}
+						d3.select("#"+ID).append("rect").attr("id",function() {return ID+"_sliderLeftRect";}).attr("class",function(){return ID+"_regionSlider";}).attr("x",function(){return ((0.1+(regions[0]-1)/(fasta_sorted.length-1)*0.8)-knobThickness/2)*width}).attr("y",0.825*height).attr("width",knobThickness*width).attr("height",0.05*height).attr("fill-opacity",0).attr("fill","Orange").transition("fadein").attr("fill-opacity",0.85).delay(0).duration(1000);
+						d3.select("#"+ID+"_sliderLeftRect").call(drag);
+					}
+					function sliderRightRect (ID) {
+						var drag = d3.behavior.drag().origin(function(){var x = +d3.select(this).attr("x"); var y = +d3.select(this).attr("y"); return {"x":x,"y":y};}).on("drag", dragFunc).on("dragstart",function (){d3.event.sourceEvent.stopPropagation();});
+						function dragFunc() {
+							var knobPos = Math.max(((0.1+(regions[0]-1)/(fasta_sorted.length-1)*0.8)+knobThickness/2)*width,Math.min((0.9-knobThickness/2)*width,d3.event.x));
+							d3.select(this).attr("x",knobPos);
+							regions[1] = ((knobPos/width-(0.1-knobThickness/2))*(fasta_sorted.length-1)/0.8)+1;
+							d3.select("#"+ID+"_sliderHighlight").attr("x",function(){return ((0.1+(regions[0]-1)/(fasta_sorted.length-1)*0.8)+knobThickness/2)*width}).attr("width",function(){var w = ((regions[1]-regions[0])/(fasta_sorted.length-1)*0.8-knobThickness)*width; return w>=0?w:0;});
+							d3.select("#"+ID+"_sliderIndicator1").text(Math.round(regions[1])).attr("x",function(){return ((0.1+(regions[1]-1)/(fasta_sorted.length-1)*0.8))*width+2*fontSize;});
+							args = filterOrdinator(points);
+							renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);
+						}
+						d3.select("#"+ID).append("rect").attr("id",function() {return ID+"_sliderRightRect";}).attr("class",function(){return ID+"_regionSlider";}).attr("x",function(){return ((0.1+(regions[1]-1)/(fasta_sorted.length-1)*0.8)-knobThickness/2)*width;}).attr("y",0.825*height).attr("width",knobThickness*width).attr("height",0.05*height).attr("fill-opacity",0).attr("fill","Orange").transition("fadein").attr("fill-opacity",0.85).delay(0).duration(1000);
+						d3.select("#"+ID+"_sliderRightRect").call(drag);
+					}
+					function silderHighlight (ID) {
+						var drag = d3.behavior.drag().origin(function(){var x = +d3.select(this).attr("x"); var y = +d3.select(this).attr("y"); return {"x":x,"y":y};}).on("drag", dragFunc).on("dragstart",function (){d3.event.sourceEvent.stopPropagation();});
+						function dragFunc() {
+							var widthHighlight = +d3.select(this).attr("width");
+							var min = (0.1+knobThickness/2)*width;
+							var max = (0.9-knobThickness/2)*width-widthHighlight;
+							var knobPos = Math.max(min,Math.min(max,d3.event.x));
+							var newRegions0 = (knobPos/width-0.1-knobThickness/2)/0.8*(fasta_sorted.length-1)+1;
+							var diff = newRegions0 - regions[0];
+							var newRegions1 = regions[1]+diff;
+							regions[0] = newRegions0;
+							regions[1] = newRegions1;
+							d3.select(this).attr("x",knobPos);
+							d3.select("#"+ID+"_sliderLeftRect").attr("x",function(){return ((0.1+(regions[0]-1)/(fasta_sorted.length-1)*0.8)-knobThickness/2)*width});
+							d3.select("#"+ID+"_sliderRightRect").attr("x",function(){return ((0.1+(regions[1]-1)/(fasta_sorted.length-1)*0.8)-knobThickness/2)*width;});
+							d3.select("#"+ID+"_sliderIndicator0").text(Math.round(regions[0])).attr("x",function(){return ((0.1+(regions[0]-1)/(fasta_sorted.length-1)*0.8))*width-2*fontSize;});
+							d3.select("#"+ID+"_sliderIndicator1").text(Math.round(regions[1])).attr("x",function(){return ((0.1+(regions[1]-1)/(fasta_sorted.length-1)*0.8))*width+2*fontSize;});
+							args = filterOrdinator(points);
+							renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);
+						}
+						d3.select("#"+ID).append("rect").attr("id",function() {return ID+"_sliderHighlight";}).attr("class",function(){return ID+"_regionSlider";}).attr("x",function(){return ((0.1+(regions[0]-1)/(fasta_sorted.length-1)*0.8)+knobThickness/2)*width}).attr("y",0.825*height).attr("width",function(){return ((regions[1]-regions[0])/(fasta_sorted.length-1)*0.8-knobThickness)*width;}).attr("height",0.05*height).attr("fill-opacity",0).attr("fill","DarkSalmon").transition("fadein").attr("fill-opacity",0.50).delay(0).duration(1000);
+						d3.select("#"+ID+"_sliderHighlight").call(drag);
+					}
+					function sliderIndicators (ID) {
+						d3.select("#"+ID).append("text").text(Math.round(regions[0])).attr("id",function() {return ID+"_sliderIndicator0";}).attr("class",function(){return ID+"_regionSlider";}).attr("x",function(){return ((0.1+(regions[0]-1)/(fasta_sorted.length-1)*0.8))*width-2*fontSize;}).attr("y",0.820*height).attr("font-size",fontSize).attr("font-family","sans-serif").attr("text-anchor","middle").attr("fill","Orange").attr("fill-opacity",0).transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+						d3.select("#"+ID).append("text").text(Math.round(regions[1])).attr("id",function() {return ID+"_sliderIndicator1";}).attr("class",function(){return ID+"_regionSlider";}).attr("x",function(){return ((0.1+(regions[1]-1)/(fasta_sorted.length-1)*0.8))*width+2*fontSize;}).attr("y",0.820*height).attr("font-size",fontSize).attr("font-family","sans-serif").attr("text-anchor","middle").attr("fill","Orange").attr("fill-opacity",0).transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					}
+				}
+				//***slider function***
+				
+				//***Aminoacid(AA) dial --- if WtOrMt argument is 0 than the wildtype aa dial is placed, else if it is 1 than the mutated ones are placed***
+				function renderAADials(ID,WtOrMt) {
+					d3.selectAll("."+ID+"_"+WtOrMt+"_AADials").remove();
+					var dims = Math.min(width,height);
+					
+					d3.select("#"+ID).append("text").text(function(){return WtOrMt===0?"from":"to"}).attr("x",function(){return (0.1+WtOrMt*0.47-0.050)*width}).attr("y",function(d,i){return 0.9*height+0.0125*dims+dims/120;}).attr("fill","AntiqueWhite").attr("fill-opacity",0.9).attr("font-size",dims/40).attr("font-family","sans-serif").attr("font-weight",900).style("cursor","default").attr("text-anchor","middle").attr("class",ID+"_"+WtOrMt+"_AADials");
+					
+					d3.select("#"+ID).selectAll("wildtypeDials")
+					.data(filterAA[WtOrMt])
+					.enter()
+					.append("rect")
+					.attr("x",function(d,i){return (0.1+WtOrMt*0.47+0.033*(i%10))*width;})
+					.attr("y",function(d,i){return (0.875+0.033*Math.floor(i/10))*height;})
+					.attr("width",0.025*dims)
+					.attr("height",0.025*dims)
+					.attr("rx",5)
+					.attr("ry",5)
+					.attr("fill","Orange")
+					.attr("stroke","Orange")
+					.attr("fill-opacity",0)
+					.attr("stroke-opacity",0)
+					.attr("stroke-width",10)
+					.attr("class",ID+"_"+WtOrMt+"_AADials "+ID+"_"+WtOrMt+"_AADialsRects")
+					.attr("id",function(d,i){return ID+"_"+WtOrMt+"_AADials"+"_"+i;})
+					.on("mouseover",function(d,i){d3.select(this).attr("stroke-width",20);})
+					.on("mouseout",function(d,i){d3.select(this).attr("stroke-width",10);})
+					.on("click",function(d,i){d3.select(this).attr("stroke-width",10).attr("fill",function(){return filterAA[WtOrMt][i][1]==="on"?"DimGray":"Orange";});filterAA[WtOrMt][i][1]=filterAA[WtOrMt][i][1]==="on"?"off":"on";args = filterOrdinator(points);renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);})
+					.transition("fadein")
+					.attr("fill-opacity",0.85)
+					.attr("stroke-opacity",0.9)
+					.delay(function(d,i){return i*50;})
+					.duration(function(d,i){return 150;});
+					
+					d3.select("#"+ID).selectAll("wildtypeDialsTexts")
+					.data(filterAA[WtOrMt])
+					.enter()
+					.append("text")
+					.text(function(d,i){return d[0];})
+					.attr("x",function(d,i){return (0.1+WtOrMt*0.47+0.033*(i%10))*width+0.0125*dims;})
+					.attr("y",function(d,i){return (0.875+0.033*Math.floor(i/10))*height+0.0125*dims+dims/120;})
+					.attr("fill","AntiqueWhite")
+					.attr("fill-opacity",0)
+					.attr("font-size",dims/40)
+					.attr("font-family","sans-serif")
+					.attr("font-weight",800)
+					.style("cursor","default")
+					.attr("text-anchor","middle")
+					.attr("class",ID+"_"+WtOrMt+"_AADials")
+					.on("mouseover",function(d,i){d3.select("#"+ID+"_"+WtOrMt+"_AADials"+"_"+i).attr("stroke-width",20);})
+					.on("mouseout",function(d,i){d3.select("#"+ID+"_"+WtOrMt+"_AADials"+"_"+i).attr("stroke-width",10);})
+					.on("click",function(d,i){d3.select("#"+ID+"_"+WtOrMt+"_AADials"+"_"+i).attr("stroke-width",10).attr("fill",function(){return filterAA[WtOrMt][i][1]==="on"?"DimGray":"Orange";});filterAA[WtOrMt][i][1]=filterAA[WtOrMt][i][1]==="on"?"off":"on";args = filterOrdinator(points);renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);})
+					.transition("fadein")
+					.attr("fill-opacity",0.9)
+					.delay(function(d,i){return i*50;})
+					.duration(function(d,i){return 150;});
+				}
+				//***Aminoacid(AA) dial --- if WtOrMt argument is 0 than the wildtype aa dial is placed, else if it is 1 than the mutated ones are placed***
+			
+				//**AAMassDials--selects all or none. Places 4 buttons based on WtOrMt argument, 2 for each side.
+				function renderAAmassDials (ID,WtOrMt) {
+					d3.selectAll("."+ID+"_"+WtOrMt+"_AAmassDials").remove();
+					var dims = Math.min(width,height);
+					
+					d3.select("#"+ID).selectAll("massDials")
+					.data(d3.range(2))
+					.enter()
+					.append("rect")
+					.attr("x",function(d,i){if (WtOrMt===0){return (0.1+WtOrMt*0.47+0.066*((i+20)%10))*width;}else{return (0.1+WtOrMt*0.47+0.066*((i+21)%10))*width;}})
+					.attr("y",function(d,i){return (0.875+0.033*Math.floor((i+20)/10))*height;})
+					.attr("width",0.05*dims)
+					.attr("height",0.025*dims)
+					.attr("rx",5)
+					.attr("ry",5)
+					.attr("fill","Orange")
+					.attr("stroke","Orange")
+					.attr("fill-opacity",0)
+					.attr("stroke-opacity",0)
+					.attr("stroke-width",10)
+					.attr("class",ID+"_"+WtOrMt+"_AAmassDials")
+					.attr("id",function(d,i){return ID+"_"+WtOrMt+"_AAmassDials_"+i;})
+					.on("mouseover",function(d,i){d3.select(this).attr("stroke-width",20);})
+					.on("mouseout",function(d,i){d3.select(this).attr("stroke-width",10);})
+					.on("click",function(d,i){if (i===0){filterAA[WtOrMt].forEach(function(d,i){d[1]="on"});d3.selectAll("."+ID+"_"+WtOrMt+"_AADialsRects").attr("fill","Orange");}else{filterAA[WtOrMt].forEach(function(d,i){d[1]="off"});d3.selectAll("."+ID+"_"+WtOrMt+"_AADialsRects").attr("fill","DimGray");};args = filterOrdinator(points);renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);})
+					.transition("fadein")
+					.attr("fill-opacity",0.85)
+					.attr("stroke-opacity",0.9)
+					.delay(function(d,i){return (i+20)*50;})
+					.duration(function(d,i){return 150;});
+					
+					d3.select("#"+ID).selectAll("massDialsTexts")
+					.data(d3.range(2))
+					.enter()
+					.append("text")
+					.text(function(d,i){if(i===0){return "All";}else{return "None";}})
+					.attr("x",function(d,i){if(WtOrMt===0){return (0.1+WtOrMt*0.47+0.066*((i+20)%10))*width+0.0250*dims;}else{return (0.1+WtOrMt*0.47+0.066*((i+21)%10))*width+0.0250*dims;}})
+					.attr("y",function(d,i){return (0.875+0.033*Math.floor((i+20)/10))*height+0.0125*dims+dims/180;})
+					.attr("fill","AntiqueWhite")
+					.attr("fill-opacity",0)
+					.attr("font-size",dims/60)
+					.attr("font-family","sans-serif")
+					.attr("font-weight",500)
+					.style("cursor","default")
+					.attr("text-anchor","middle")
+					.attr("class",ID+"_"+WtOrMt+"_AAmassDials")
+					.on("mouseover",function(d,i){d3.select("#"+ID+"_"+WtOrMt+"_AAmassDials"+"_"+i).attr("stroke-width",20);})
+					.on("mouseout",function(d,i){d3.select("#"+ID+"_"+WtOrMt+"_AAmassDials"+"_"+i).attr("stroke-width",10);})
+					.on("click",function(d,i){if (i===0){filterAA[WtOrMt].forEach(function(d,i){d[1]="on"});d3.selectAll("."+ID+"_"+WtOrMt+"_AADialsRects").attr("fill","Orange");}else{filterAA[WtOrMt].forEach(function(d,i){d[1]="off"});d3.selectAll("."+ID+"_"+WtOrMt+"_AADialsRects").attr("fill","DimGray");};args = filterOrdinator(points);renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);})
+					.transition("fadein")
+					.attr("fill-opacity",0.9)
+					.delay(function(d,i){return i*50;})
+					.duration(function(d,i){return 150;});
+				}
+				//**AAMassDials--selects all or none. Places 4 buttons based on WtOrMt argument, 2 for each side.
+			
+				//Show Wildtype/Mutated and Show NA
+				function renderShowModules(ID) {
+					d3.selectAll("."+ID+"_ShowModulesTexts").remove();
+					d3.select("#"+ID).append("text").text(function(){return glyphOrigin===1?"Show Wildtype":"Show Mutated"}).attr("class",function(){return ID+"_ShowModulesTexts"}).attr("x",function(){return width-350;}).attr("y",400).attr("font-size",40).attr("font-family","sans-serif").attr("font-weight",600).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0)
+					.on("mouseover",function(){d3.select(this).attr("fill","Orange");})
+					.on("mouseout",function(){d3.select(this).attr("fill","AntiqueWhite");})
+					.on("click",function(){if(glyphOrigin===1){glyphOrigin=0}else{glyphOrigin=1};d3.select(this).text(function(){return glyphOrigin===1?"Show Wildtype":"Show Mutated"});renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);})
+					.transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("text").text(function(){return filterNA===1?"Show 'NA' values":"Hide 'NA' values"}).attr("class",function(){return ID+"_ShowModulesTexts"}).attr("x",275).attr("y",400).attr("font-size",40).attr("font-family","sans-serif").attr("font-weight",600).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0)
+					.on("mouseover",function(){d3.select(this).attr("fill","Orange");})
+					.on("mouseout",function(){d3.select(this).attr("fill","AntiqueWhite");})
+					.on("click",function(){if(filterNA===1){filterNA=0}else{filterNA=1};d3.select(this).text(function(){return filterNA===1?"Show 'NA' values":"Hide 'NA' values"});args = filterOrdinator(points);renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);})
+					.transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("text").text(function(){return filterSynonymous===1?"Show Synonymous":"Hide Synonymous"}).attr("class",function(){return ID+"_ShowModulesTexts"}).attr("x",width/2).attr("y",400).attr("font-size",40).attr("font-family","sans-serif").attr("font-weight",600).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0)
+					.on("mouseover",function(){d3.select(this).attr("fill","Orange");})
+					.on("mouseout",function(){d3.select(this).attr("fill","AntiqueWhite");})
+					.on("click",function(){if(filterSynonymous===1){filterSynonymous=0}else{filterSynonymous=1};d3.select(this).text(function(){return filterSynonymous===1?"Show Synonymous":"Hide Synonymous"});args = filterOrdinator(points);renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);})
+					.transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("text").text(function(){return showLabels===1?"Hide Labels":"Show Labels"}).attr("class",function(){return ID+"_ShowModulesTexts"}).attr("x",235).attr("y",500).attr("font-size",40).attr("font-family","sans-serif").attr("font-weight",600).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0)
+					.on("mouseover",function(){d3.select(this).attr("fill","Orange");})
+					.on("mouseout",function(){d3.select(this).attr("fill","AntiqueWhite");})
+					.on("click",function(){if(showLabels===1){showLabels=0}else{showLabels=1};d3.select(this).text(function(){return showLabels===1?"Hide Labels":"Show Labels"});renderAxes([currentRotateX,currentRotateY,currentRotateZ],1);})
+					.transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("text").text("Show Functions").attr("class",function(){return ID+"_ShowModulesTexts"}).attr("x",function(){return width-330;}).attr("y",500).attr("font-size",40).attr("font-family","sans-serif").attr("font-weight",600).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0)
+					.on("mouseover",function(){d3.select(this).attr("fill","Orange");})
+					.on("mouseout",function(){d3.select(this).attr("fill","AntiqueWhite");})
+					.on("click",function(){var IDfunc= ID+"_func"; d3.select("#"+IDfunc).remove();renderWindow("svg",IDfunc,{"x":+d3.select("#"+ID).attr("x")-1500,"y":+d3.select("#"+ID).attr("y"),"width":1500,"height":2500,"rx":100,"ry":100,"iconPadding":100,"iconSize":100,"minWidth":1500,"minHeight":2500},displayFunctionTable);})
+					.transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("text").text(function(){for (var i=0,syn=0;i<args.length;i++){if(synOrNonsyn(ids["mut"][args[i][3]])==="Synonymous"){syn++}} return "Syn: "+syn;}).attr("id",function(){return ID+"_synonymousIndicator"}).attr("class",function(){return ID+"_ShowModulesTexts"}).attr("x",function(){return width/2-200;}).attr("y",500).attr("font-size",40).attr("font-family","sans-serif").attr("font-weight",600).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0)
+					.on("mouseover",function(){d3.select(this).attr("fill","Orange");})
+					.on("mouseout",function(){d3.select(this).attr("fill","AntiqueWhite");})
+					.transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					d3.select("#"+ID).append("text").text(function(){for (var i=0,nonSyn=0;i<args.length;i++){if(synOrNonsyn(ids["mut"][args[i][3]])==="Nonsynonymous"){nonSyn++}} return "Nonsyn: "+nonSyn;}).attr("id",function(){return ID+"_nonsynonymousIndicator"}).attr("class",function(){return ID+"_ShowModulesTexts"}).attr("x",function(){return width/2+100;}).attr("y",500).attr("font-size",40).attr("font-family","sans-serif").attr("font-weight",600).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0)
+					.on("mouseover",function(){d3.select(this).attr("fill","Orange");})
+					.on("mouseout",function(){d3.select(this).attr("fill","AntiqueWhite");})
+					.transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+					
+					d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_ShowModulesTexts"}).attr("id",ID+"_traceRect").attr("x",width/2-75).attr("y",0.935*height).attr("width",150).attr("height",60).attr("rx",15).attr("ry",15).attr("fill","Orange").attr("stroke","Orange").attr("fill-opacity",0.85).attr("stroke-opacity",9).attr("stroke-width",10);
+					d3.select("#"+ID).append("text").text("trace").attr("class",function(){return ID+"_ShowModulesTexts"}).attr("x",width/2).attr("y",0.935*height+40).attr("font-size",40).attr("font-family","sans-serif").attr("font-weight",600).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0.85).style("cursor","default")
+					.on("mouseover",function(){d3.select("#"+ID+"_traceRect").transition().attr("fill","DarkSalmon").delay(0).duration(500);})
+					.on("mouseout",function(){d3.select("#"+ID+"_traceRect").transition().attr("fill","Orange").delay(0).duration(500);})
+					.on("click",function(){if(showTraceLine===1){showTraceLine=0;d3.select("#"+ID+"_traceLine").remove();}else{showTraceLine=1;drawTraceLine(args,[currentRotateX,currentRotateY,currentRotateZ],0);}});
+				}
+				//Show Wildtype/Mutated and Show NA
+				
+				//Zoom Level and Glyph size and the text size
+				function renderSizeControls (ID) {
+					renderZoom(ID);
+					renderTextSize(ID);
+					renderGlyphSize(ID);
+					function renderZoom (ID) {
+						d3.selectAll("."+ID+"_renderZoom").remove();
+						d3.select("#"+ID).append("text").text("zoom").attr("class",function(){return ID+"_renderZoom";}).attr("x",width-150).attr("y",615).attr("font-size","50px").attr("font-family","sans-serif").attr("font-weight",700).attr("text-anchor","middle").attr("fill","Orange").attr("fill-opacity",0).transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+						d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderZoom";}).attr("x",width-150).attr("y",685).attr("width",15).attr("height",300).attr("rx",15).attr("ry",15).attr("fill-opacity",0).attr("fill","Orange").transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+						var drag = d3.behavior.drag().origin(function(){var x = +d3.select(this).attr("x"); var y = +d3.select(this).attr("y"); return {"x":x,"y":y};}).on("drag", dragFunc).on("dragstart",function (){d3.event.sourceEvent.stopPropagation();});
+						function dragFunc() {
+							var knobPos = Math.max(667,Math.min(667+300,d3.event.y));
+							d3.select(this).attr("y",knobPos);
+							var zoomLevel = (knobPos-667)/300*2.5+0.5;
+							widthScale = zoomLevel*1/3;
+							heightScale = zoomLevel*1/6;
+							renderAxes([currentRotateX,currentRotateY,currentRotateZ],1);
+							renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);
+						}
+						d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderZoom";}).attr("id",function(){return ID+"_renderZoom_knob";}).attr("x",width-168).attr("y",727).attr("width",50).attr("height",50).attr("rx",15).attr("ry",15).attr("fill-opacity",1).attr("fill","Orange").call(drag);
+					}
+					function renderTextSize (ID) {
+						d3.selectAll("."+ID+"_renderTextSize").remove();
+						d3.select("#"+ID).append("text").text("text-size").attr("class",function(){return ID+"_renderTextSize";}).attr("x",width-150).attr("y",1050).attr("font-size","50px").attr("font-family","sans-serif").attr("font-weight",700).attr("text-anchor","middle").attr("fill","Orange").attr("fill-opacity",0).transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+						d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderTextSize";}).attr("x",width-150).attr("y",1120).attr("width",15).attr("height",300).attr("rx",15).attr("ry",15).attr("fill-opacity",0).attr("fill","Orange").transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+						var drag = d3.behavior.drag().origin(function(){var x = +d3.select(this).attr("x"); var y = +d3.select(this).attr("y"); return {"x":x,"y":y};}).on("drag", dragFunc).on("dragstart",function (){d3.event.sourceEvent.stopPropagation();});
+						function dragFunc() {
+							var knobPos = Math.max(1102,Math.min(1102+300,d3.event.y));
+							d3.select(this).attr("y",knobPos);
+							var zoomLevel = (knobPos-1102)/300*2.75+0.25;
+							fontSize = wTimesH/70000*zoomLevel;
+							renderAxes([currentRotateX,currentRotateY,currentRotateZ],1);
+							renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);
+						}
+						d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderTextSize";}).attr("id",function(){return ID+"_renderTextSize_knob";}).attr("x",width-168).attr("y",1184).attr("width",50).attr("height",50).attr("rx",15).attr("ry",15).attr("fill-opacity",1).attr("fill","Orange").call(drag);
+					}
+					function renderGlyphSize (ID) {
+						d3.selectAll("."+ID+"_renderGlyphSize").remove();
+						d3.select("#"+ID).append("text").text("glyph-size").attr("class",function(){return ID+"_renderGlyphSize";}).attr("x",width-150).attr("y",1515).attr("font-size","50px").attr("font-family","sans-serif").attr("font-weight",700).attr("text-anchor","middle").attr("fill","Orange").attr("fill-opacity",0).transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+						d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderGlyphSize";}).attr("x",width-150).attr("y",1585).attr("width",15).attr("height",300).attr("rx",15).attr("ry",15).attr("fill-opacity",0).attr("fill","Orange").transition("fadein").attr("fill-opacity",1).delay(0).duration(1000);
+						var drag = d3.behavior.drag().origin(function(){var x = +d3.select(this).attr("x"); var y = +d3.select(this).attr("y"); return {"x":x,"y":y};}).on("drag", dragFunc).on("dragstart",function (){d3.event.sourceEvent.stopPropagation();});
+						function dragFunc() {
+							var knobPos = Math.max(1567,Math.min(1567+300,d3.event.y));
+							d3.select(this).attr("y",knobPos);
+							glyphMultiplier = (knobPos-1567)/300*2.75+0.25;
+							renderAxes([currentRotateX,currentRotateY,currentRotateZ],1);
+							renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);
+						}
+						d3.select("#"+ID).append("rect").attr("class",function(){return ID+"_renderTextSize";}).attr("id",function(){return ID+"_renderGlyphSize_knob";}).attr("x",width-168).attr("y",1649).attr("width",50).attr("height",50).attr("rx",15).attr("ry",15).attr("fill-opacity",1).attr("fill","Orange").call(drag);
+					}
+				}
+				//Zoom Level and Glyph size and the text size
+			}
+			
+			function filterOrdinator (input) {
+				input = input.filter(function(d,i){return pointLocations[d[3]]>=Math.round(regions[0])&&pointLocations[d[3]]<=Math.round(regions[1])});
+				input = input.filter(function(d,i){if(filterSynonymous===1){return wildtypeAndMutated[d[3]][0]!==wildtypeAndMutated[d[3]][1]}else{return true;}});
+				input = input.filter(function(d,i){return filterAA[0].some(function(u,w){return u[0]===wildtypeAndMutated[d[3]][0]&&u[1]==="on"})&&filterAA[1].some(function(u,w){return u[0]===wildtypeAndMutated[d[3]][1]&&u[1]==="on"})});
+				input = input.filter(function(d,i){if(filterNA===1){return d.map(function(u,w){return u*[1,-1,1,1][w]}).every(function(u,w){return u>=0})}else{return true;}})
+				
+				//update syn/Nonsyn indicators
+				d3.select("#"+ID+"_synonymousIndicator").text(function(){for (var i=0,syn=0;i<input.length;i++){if(synOrNonsyn(ids["mut"][input[i][3]])==="Synonymous"){syn++}} return "Syn: "+syn;});
+				d3.select("#"+ID+"_nonsynonymousIndicator").text(function(){for (var i=0,nonSyn=0;i<input.length;i++){if(synOrNonsyn(ids["mut"][input[i][3]])==="Nonsynonymous"){nonSyn++}} return "Nonsyn: "+nonSyn;});
+				//update syn/Nonsyn indicators
+				
+				return input;
+			}
+			
+			function drawTraceLine (args,angleArray,refresh) {
+				d3.select("#"+ID+"_traceLine").remove();
+				var points = [];
+				var length = args.length;
+				for (var i=0;i<length;i++) {
+					points[i] = ordinatorRotate(args[i],angleArray);
+				}
+				points.sort(function(a,b){return pointLocations[a[3]]-pointLocations[b[3]]});
+				var lineArray = [];
+				for (var i=0;i<length;i++) {
+					var mapped = ordinatorMap2D(points[i]);
+					lineArray[i]=[];
+					lineArray[i][0] = (mapped[0]*widthScale+widthTranslate)*width;
+					lineArray[i][1] = (mapped[1]*heightScale+heightTranslate)*height;
+				}
+				var line = d3.svg.line().interpolate("cardinal");
+				d3.select("#"+ID).append("path")
+				.attr("d",function(){return refresh===1?line(lineArray):line([lineArray[0]]);})
+				.attr("fill","none")
+				.attr("stroke-width",5)
+				.attr("stroke","DarkSalmon")
+				.attr("stroke-opacity",0.6)
+				.attr("id",ID+"_traceLine")
+				.style("marker-end","url(#markerTriangle)");
+				
+				if (refresh !==1){
+					d3.select("#"+ID+"_traceLine").transition("extendTrace").attrTween("d",function(){return trace(this,lineArray,Math.max(100,Math.min(length,300)),0)}).delay(0).duration(10000);
+				}
+			}
+			
+			function registerLinks (point) {
+				d3.selectAll(".ordinator_"+ID+"_registerLinkBoxes").remove();
+				clearInterval(intervalButtons);
+				clearInterval(intervalHighlight);
+				
+				d3.select("#"+ID).append("rect").attr("id","ordinator_"+ID+"_registerLinkRect1").attr("class","ordinator_"+ID+"_registerLinkBoxes").attr("width",240).attr("height",80).attr("rx",15).attr("ry",15).attr("fill","Orange").attr("stroke","Orange").attr("fill-opacity",0.85);
+				d3.select("#"+ID).append("rect").attr("id","ordinator_"+ID+"_registerLinkRect2").attr("class","ordinator_"+ID+"_registerLinkBoxes").attr("width",240).attr("height",80).attr("rx",15).attr("ry",15).attr("fill","Orange").attr("stroke","Orange").attr("fill-opacity",0.85);
+				
+				d3.select("#"+ID).append("text").text(function(){if (linkingStatus===0){return "link"}else{return "end"}}).attr("id","ordinator_"+ID+"_registerLinkText1").attr("class","ordinator_"+ID+"_registerLinkBoxes").attr("dx",120).attr("dy",50).attr("font-size",60).attr("font-family","sans-serif").attr("font-weight",600).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0.85).style("cursor","default")
+				.on("mouseover",function(){d3.select("#ordinator_"+ID+"_registerLinkRect1").attr("fill","DarkSalmon")})
+				.on("mouseout",function(){d3.select("#ordinator_"+ID+"_registerLinkRect1").attr("fill","Orange")})
+				.on("click",function(){
+					if(d3.select(this).text()==="link") {
+						linkingStatus=1;
+						links[linkCounter] =[];
+						links[linkCounter].push(point[3]);
+						linksColors.push("rgb(255,215,0)");
+						linksAlphas.push(0.5);
+						clearInterval(intervalButtons);
+						intervalHighlight = setInterval(function(){animateDashArray("#ordinatorPoint_"+ID+"_"+point[3]);},1000);
+						d3.selectAll(".ordinator_"+ID+"_registerLinkBoxes").remove();
+					} else {
+						linkingStatus=0;
+						if (links[linkCounter][links[linkCounter].length-1] !== point[3]){
+							links[linkCounter].push(point[3]);
+						}
+						linkCounter++;
+						clearInterval(intervalButtons);
+						clearInterval(intervalHighlight);
+						d3.selectAll(".ordinator_"+ID+"_registerLinkBoxes").remove();
+						//links[linkCounter].forEach(function(d,i){d3.select("#ordinatorPoint_"+ID+"_"+d).attr("stroke-width",2);});
+						renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);
+					}
+				});
+				
+				d3.select("#"+ID).append("text").text("cancel").attr("id","ordinator_"+ID+"_registerLinkText2").attr("class","ordinator_"+ID+"_registerLinkBoxes").attr("dx",120).attr("dy",50).attr("font-size",60).attr("font-family","sans-serif").attr("font-weight",600).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0.85).style("cursor","default")
+				.on("mouseover",function(){d3.select("#ordinator_"+ID+"_registerLinkRect2").attr("fill","DarkSalmon")})
+				.on("mouseout",function(){d3.select("#ordinator_"+ID+"_registerLinkRect2").attr("fill","Orange")})
+				.on("click",function(){
+					if(linkingStatus===1) {
+						linkingStatus=0;
+						links.pop();
+						linksColors.pop();
+						linksAlphas.pop();
+						clearInterval(intervalButtons);
+						clearInterval(intervalHighlight);
+						d3.selectAll(".ordinator_"+ID+"_registerLinkBoxes").remove();
+						renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);
+					} else {
+						clearInterval(intervalButtons);
+						clearInterval(intervalHighlight);
+						d3.selectAll(".ordinator_"+ID+"_registerLinkBoxes").remove();
+					}
+				});
+				
+				intervalButtons = setInterval(function(){updatePos("#ordinator_"+ID+"_registerLinkRect1","#ordinator_"+ID+"_registerLinkRect2");updatePos("#ordinator_"+ID+"_registerLinkText1","#ordinator_"+ID+"_registerLinkText2");},100);
+				if(linkingStatus===1) {
+					if (links[linkCounter][links[linkCounter].length-1] !== point[3]){
+						links[linkCounter].push(point[3]);
+					}
+					intervalHighlight = setInterval(function(){links[linkCounter].forEach(function(d,i){animateDashArray("#ordinatorPoint_"+ID+"_"+d);})},1000);
+				}
+				
+				function animateDashArray(element) {
+					if(d3.select("#"+ID).node()) {
+						d3.select(element).attr("stroke-width",25).attr("stroke","Orange").attr("stroke-dasharray","20 5");
+						d3.select(element).transition("highlight").ease("linear").attrTween("stroke-dashoffset",function(){var interpolator = d3.interpolate(0,-25);return function(t){return interpolator(t);}}).delay(0).duration(1000);
+					} else {
+						clearInterval(intervalHighlight);
+					}
+				}
+				
+				function updatePos (element1,element2) {
+					if(d3.select("#"+ID).node()) {
+						var original = points[point[3]];
+						original = ordinatorRotate(original,[currentRotateX,currentRotateY,currentRotateZ]);
+						var mapped = ordinatorMap2D(original);
+						var x = mapped[0]*widthScale+widthTranslate;
+						var y = mapped[1]*heightScale+heightTranslate;
+						x = x>1/2?x-0.1:x+0.1;
+						y = y>1/2?y-0.1:y+0.1;
+						d3.select(element1).attr("x",(x-0.1)*width).attr("y",y*height);
+						d3.select(element2).attr("x",(x+0.1)*width).attr("y",y*height);
+					} else {
+						clearInterval(intervalButtons);
+					}
+				}
+			}
+			
+			//below function is called by renderGlyphs
+			function renderPseudoPoly (angleArray) {
+				var line = d3.svg.line();
+				var length = links.length;
+				d3.selectAll("."+ID+"_pseudoPolys").remove();
+				d3.selectAll("."+"ordinator_"+ID+"_colorPicker").remove();
+				var pointArrays = [];//[[[points],indexAbsolute,indexRender],..]
+				var avgZ = [];//[Z,..] default index ordered
+				for (var i = 0;i<length;i++) {
+					var currentPointArray = indexArrayToPointArray(links[i],angleArray);
+					var currentAbsoluteIndex = i;
+					var currentRenderingIndex = avgZ[i];
+					pointArrays.push([currentPointArray,currentAbsoluteIndex,currentRenderingIndex]);
+				}
+				pointArrays.sort(function(a,b){return a[2]-b[2]});
+				for (var i = 0;i<length;i++) {
+					renderSegment(pointArrays[i][0],pointArrays[i][1]);
+				}
+				function indexArrayToPointArray(array,angleArray) {
+					var result = [];
+					var length = array.length;
+					var totalZ = 0;
+					for (var i=0;i<length;i++) {
+						var original = ordinatorRotate(points[array[i]],angleArray);
+						var mapped = ordinatorMap2D(original);
+						var x = (mapped[0]*widthScale+widthTranslate)*width;
+						var y = (mapped[1]*heightScale+heightTranslate)*height;
+						totalZ += original[2];
+						result.push([x,y]);
+					}
+					totalZ = totalZ/length;
+					avgZ.push(totalZ);
+					return result;
+				}
+				function renderSegment (lineArray,index) {
+					//d3.select("#"+ID+"_pseudoPoly_"+index).remove();
+					//var line = d3.svg.line();
+					d3.select("#"+ID).append("path")
+						.attr("d",function(){return line(lineArray)+" Z";})
+						.attr("fill",linksColors[index])
+						.attr("fill-opacity",linksAlphas[index])
+						.attr("stroke-width",15)
+						.attr("stroke",linksColors[index])
+						.attr("stroke-opacity",0.6)
+						.attr("stroke-linejoin","round")
+						.attr("stroke-linecap","round")
+						.attr("id",ID+"_pseudoPoly_"+index)
+						.attr("class",ID+"_pseudoPolys")
+						.on("click",function(){
+							renderColorPicker(lineArray,index);
+						});
+				}
+				function renderColorPicker (lineArray,index) {
+					d3.selectAll("."+"ordinator_"+ID+"_colorPicker").remove();
+					var midPoint = [];
+					var length = lineArray.length;
+					var xTotal =0;
+					var yTotal =0;
+					for (var i =0;i<length;i++) {
+						xTotal += lineArray[i][0];
+						yTotal += lineArray[i][1];
+					}
+					midPoint.push(xTotal/length);
+					midPoint.push(yTotal/length);
+					var rgb = [0,0,0];
+					var alpha = 0.5;
+					d3.select("#"+ID).append("rect").attr("id","ordinator_"+ID+"_colorPickerRemove").attr("class","ordinator_"+ID+"_colorPicker").attr("x",function(d,i){return midPoint[0];}).attr("y",function(d,i){return midPoint[1]-80;}).attr("width",240).attr("height",40).attr("fill","Black").attr("stroke","Black").attr("stroke-width",2).attr("fill-opacity",0.85);
+					d3.select("#"+ID).append("text").text("REMOVE").attr("class","ordinator_"+ID+"_colorPicker").attr("x",function(d,i){return midPoint[0]+120;}).attr("y",function(d,i){return midPoint[1]-50;}).attr("font-size",30).attr("font-family","sans-serif").attr("font-weight",800).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0.85).style("cursor","default")
+					.on("mouseover",function(){d3.select("#ordinator_"+ID+"_colorPickerRemove").attr("stroke-width",5).attr("stroke","Orange");})
+					.on("mouseout",function(){d3.select("#ordinator_"+ID+"_colorPickerRemove").attr("stroke-width",2).attr("stroke","Black");})
+					.on("click",function(){var linksNew =[];var linksColorsNew = []; var linksAlphasNew = []; for(var i=0;i<links.length;i++){if(i !== index){linksNew.push(links[i]);linksColorsNew.push(linksColors[i]);linksAlphasNew.push(linksAlphas[i])}}; links = linksNew; linksColors = linksColorsNew; linksAlphas = linksAlphasNew; d3.select("#"+ID+"_pseudoPoly_"+index).remove();d3.selectAll("."+"ordinator_"+ID+"_colorPicker").remove();linkCounter--;});
+					d3.select("#"+ID).append("rect").attr("id","ordinator_"+ID+"_colorPickerApply").attr("class","ordinator_"+ID+"_colorPicker").attr("x",function(d,i){return midPoint[0];}).attr("y",function(d,i){return midPoint[1]-40;}).attr("width",240).attr("height",40).attr("fill",function(){return "rgb("+rgb+")";}).attr("stroke","Black").attr("stroke-width",2).attr("fill-opacity",0.85);
+					d3.select("#"+ID).append("text").text("APPLY").attr("class","ordinator_"+ID+"_colorPicker").attr("x",function(d,i){return midPoint[0]+120;}).attr("y",function(d,i){return midPoint[1]-10;}).attr("font-size",30).attr("font-family","sans-serif").attr("font-weight",800).attr("text-anchor","middle").attr("fill","AntiqueWhite").attr("fill-opacity",0.85).style("cursor","default")
+					.on("mouseover",function(){d3.select("#ordinator_"+ID+"_colorPickerApply").attr("stroke-width",5).attr("stroke","Orange");})
+					.on("mouseout",function(){d3.select("#ordinator_"+ID+"_colorPickerApply").attr("stroke-width",2).attr("stroke","Black");})
+					.on("click",function(){linksColors[index]="rgb("+rgb+")";linksAlphas[index]= alpha; d3.select("#"+ID+"_pseudoPoly_"+index).transition("changePseudoPolyColor").attr("fill",linksColors[index]).attr("stroke",linksColors[index]).attr("fill-opacity",linksAlphas[index]).delay(0).duration(500);d3.selectAll("."+"ordinator_"+ID+"_colorPicker").remove();});
+					d3.select("#"+ID).selectAll("ordinatorColorPicker")
+					.data(d3.range(24))
+					.enter()
+					.append("rect")
+					.attr("x",function(d,i){return midPoint[0]+(i%6)*40})
+					.attr("y",function(d,i){return midPoint[1]+Math.floor(i/6)*40})
+					.attr("width",0)
+					.attr("height",40)
+					.attr("fill",function(d,i){if(i<6){return "rgb("+(40+(i%6)*40)+",0,0)"}else if(i<12){return "rgb(0,"+(40+(i%6)*40)+",0)"}else if(i<18){return "rgb(0,0,"+(40+(i%6)*40)+")"}else{return "Orange"}})
+					.attr("fill-opacity",function(d,i){if(i<18){return 0.8}else{return 0.2+(i%6)*0.15}})
+					.attr("stroke","Black")
+					.attr("stroke-width",2)
+					.attr("class","ordinator_"+ID+"_colorPicker")
+					.on("mouseover",function(){d3.select(this).attr("stroke-width",15).attr("stroke","Orange");})
+					.on("mouseout",function(){d3.select(this).attr("stroke-width",2).attr("stroke","Black");})
+					.on("click",function(d,i){if(i<6){rgb[0]=(40+(i%6)*40);d3.select("#ordinator_"+ID+"_colorPickerApply").transition().attr("fill",function(){return "rgb("+rgb+")";}).delay(0).duration(500);}else if(i<12){rgb[1]=(40+(i%6)*40);d3.select("#ordinator_"+ID+"_colorPickerApply").transition().attr("fill",function(){return "rgb("+rgb+")";}).delay(0).duration(500);}else if(i<18){rgb[2]=(40+(i%6)*40);d3.select("#ordinator_"+ID+"_colorPickerApply").transition().attr("fill",function(){return "rgb("+rgb+")";}).delay(0).duration(500);}else{d3.select("#ordinator_"+ID+"_colorPickerApply").transition().attr("fill-opacity",function(){return 0.2+(i%6)*0.15;}).delay(0).duration(500); alpha = 0.2+(i%6)*0.15;}})
+					.transition("pop")
+					.ease("elastic")
+					.attr("width",40)
+					.delay(function(d,i){return i*20})
+					.duration(250);
+				}
+			}
+			//Render Function Table
+			var defaultFunctions = ["polyphen2","sift","position"];
+			function displayFunctionTable (ID) {
+				//d3.selectAll("."+ID+"_rects").remove();
+				//d3.selectAll("."+ID+"_texts").remove();
+				d3.select("#"+ID+"enlarge").remove();
+				d3.select("#"+ID+"magnify").remove();
+				d3.select("#"+ID+"minify").remove();
+				var options = ["X","Y","Z",
+				"polyphen2",
+				"sift",
+				"position",
+				"chemicalType",
+				"altType",
+				"AAtype",
+				"altAAtype",
+				"hydro",
+				"altHydro",
+				"avgPrediction",
+				"aaChange",
+				"domain",
+				"customdb",
+				"MAF",
+				"conservation",
+				"aggregateFeature",
+				"hist1",
+				"hist2",
+				"hist3"];
+				var svgWidth = +d3.select("#"+ID).attr("width");
+				var svgHeight = +d3.select("#"+ID).attr("height");
+				var rectWidth = 0.9*svgWidth/4;
+				var rectHeight = 0.8*svgHeight/(options.length-2);
+				var horPadding = 0.05*svgWidth;
+				var verPadding = 0.1*svgHeight;
+				//var defaultFunctions = ["polyphen2","sift","position"];
+				d3.select("#"+ID).selectAll("Ordinator_funcRects")
+				.data(d3.range((options.length-2)*4))
+				.enter()
+				.append("rect")
+				.attr("x",function(d,i){return horPadding+(i%4)*rectWidth;})
+				.attr("y",function(d,i){return verPadding+Math.floor(i/4)*rectHeight;})
+				.attr("width",0)
+				.attr("height",0)
+				.attr("fill",function(d,i){if(i<4 || i%4 === 0){return "Orange"}else if (options[Math.floor(i/4)+2] === defaultFunctions[(i%4)-1]){return "Green";}else{return "DimGray"}})
+				.attr("fill-opacity",function(d,i){return Math.sign(i)*0.5;})
+				.attr("stroke",function(d,i){if(i<4 || i%4 === 0){return "Orange"}else{return "DimGray"}})
+				.attr("stroke-opacity",function(d,i){return Math.sign(i)*0.75;})
+				.attr("stroke-width",4)
+				.attr("class",function(d,i){return ID+"_rects";})
+				.on("mouseover",function(d,i){if(i>4 && i%4 !== 0){d3.select(this).attr("stroke-width",20);}})
+				.on("mouseout",function(d,i){if(i>4 && i%4 !== 0){d3.select(this).transition().attr("stroke-width",4).delay(0).duration(300);}})
+				.on("click",function(d,i){
+					if(i>4 && i%4 !==0) {
+						defaultFunctions[(i%4)-1] = options[Math.floor(i/4)+2];
+						//console.log(defaultFunctions);
+						d3.selectAll("."+ID+"_rects").attr("fill",function(d,i){if(i<4 || i%4 === 0){return "Orange"}else if (options[Math.floor(i/4)+2] === defaultFunctions[(i%4)-1]){return "Green";}else{return "DimGray"}});
+						updatePoints(defaultFunctions);
+					}
+				})
+				.transition("pop")
+				.ease("elastic")
+				.attr("width",rectWidth)
+				.attr("height",rectHeight)
+				.delay(function(d,i){return i*10})
+				.duration(500);
+				d3.select("#"+ID).selectAll("Ordinator_funcTexts")
+				.data(d3.range(options.length))
+				.enter()
+				.append("text")
+				.text(function(d,i){return options[i];})
+				.attr("x",function(d,i){if(i<3){return horPadding+((i+1)%4)*rectWidth;}else{return horPadding;}})
+				.attr("dx",rectWidth/2)
+				.attr("y",function(d,i){if(i<3){return verPadding;}else{return verPadding+Math.floor(i-2)*rectHeight;}})
+				.attr("dy",rectHeight*2/3)
+				.attr("fill","Black")
+				.attr("fill-opacity",0)
+				.attr("stroke","DimGray")
+				.attr("stroke-opacity",0)
+				.attr("stroke-width",0)
+				.attr("font-size",function(d,i){if(i<3){return 80;}else{return 50;}})
+				.attr("font-family","sans-serif")
+				.attr("font-weight",function(d,i){if(i<3){return 800;}else{return 400;}})
+				.attr("text-anchor","middle")
+				.attr("class",function(d,i){return ID+"_texts";})
+				.transition("fadein")
+				.attr("fill-opacity",0.9)
+				.delay(function(d,i){return i*10})
+				.duration(500);
+				
+				//prevent accidental text selection
+				d3.selectAll("."+ID+"_texts").style("user-select","none").style("-moz-user-select","none").style("-webkit-user-select","none").style("-ms-user-select","none");
+			}
+			//Render Function Table
+			
+			//Update Points
+			function updatePoints (functionArray) {
+				args = ordinatorFetchData(functionArray[0],functionArray[1],functionArray[2]);
+				labels = args.labels;
+				labelNames = args.labelNames;
+				points = args.points;
+				pointsRef = [];
+				points.forEach(function(d,i){pointsRef[i]= [d[0],-d[1],d[2]];});
+				args = filterOrdinator(points);
+				renderAxes([currentRotateX,currentRotateY,currentRotateZ],1);
+				renderGlyphs(args,[currentRotateX,currentRotateY,currentRotateZ]);
+			}
+			//Update Points
+		}
+		
+		//Add the logo and the initiate Indoril/Ordinator
+		d3.select("#master").append("path").attr("id","indorilLogoPath").attr("class","indorilLogo").attr("d","M -100,5800").attr("stroke","Orange").attr("stroke-width",300).attr("fill","transparent").attr("stroke-dasharray","20 10");
+		d3.select("#master").append("circle").attr("id","indorilLogoCircle").attr("class","indorilLogo").attr("r",300).attr("cx",-100).attr("cy",5800).attr("fill","AntiqueWhite").attr("fill-opacity",1);
+		d3.select("#master").append("svg:image").attr("xlink:href","data:image/png;base64,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")
+		.attr("id","indorilLogoImage").attr("class","indorilLogo").attr("title","indoril").attr("alt","indorilLogo").attr("x",-400).attr("y",5500).attr("width",600).attr("height",600).style("opacity",1)
+		.on("mouseover",function(){
+			d3.select("#indorilLogoCircle").transition().attr("fill","Orange").delay(0).duration(1000);
+			d3.select("#indorilLogoPath").transition().ease("linear").attrTween("d",function(){return trace(this,(function(){var result = [];for(var i=0,angle=0,radius=50;i<23;i++){var x = -100+radius*Math.sin(angle);var y = 5800-radius*Math.cos(angle);angle += Math.PI/10;radius+=10;result.push([x,y]);}return result;})(),10,1);}).delay(0).duration(750);
+		})
+		.on("mouseout",function(){
+			d3.select("#indorilLogoCircle").transition().attr("fill","AntiqueWhite").delay(0).duration(1000);
+			d3.select("#indorilLogoPath").transition().ease("linear").attrTween("d",function(){ var length = this.getTotalLength(); var terminal = this.getPointAtLength(length); var rCurrent = Math.floor(Math.sqrt(Math.pow(terminal.x+100,2)+Math.pow(terminal.y-5800,2))/10)*10; var iCurrent = (rCurrent-50)/10; var angleCurrent = iCurrent*Math.PI/10; return traceBack(this,(function(){var result = [];for(var i=0,angle=0,radius=50;i<=iCurrent;i++){var x = -100+radius*Math.sin(angle);var y = 5800-radius*Math.cos(angle);angle += Math.PI/10;radius +=10;result.push([x,y]);};return result;})(),10,1);}).delay(0).duration(750);
+		})
+		.on("click",function(){
+			d3.select("#Ordinator").remove();
+			//renderWindow("svg","Ordinator",sampleLoc,ordinator,[[1,0,0,0],[0,-1,0,1],[0,0,1,2],[0.5,0.5,0.5,3],[0.5,-1,0.75,4],[0.75,0.2,0.3,5]]);
+			renderWindow("svg","Ordinator",{"x":1500,"y":1500,"width":1500,"height":2500,"rx":100,"ry":100,"iconPadding":100,"iconSize":100,"minWidth":1500,"minHeight":2500,"maxWidth":5000,"maxHeight":5000},ordinator,ordinatorFetchData("polyphen2","sift","position"));
+		});
+		//Add the logo and the initiate Indoril/Ordinator
+		
+		<!--Ordinator-->
+		
+		<!--Global Trace Function for paths-->
+		//Mode 0 is where the resolution corresponds to the number of equal segments of a path. Mode 1 is unit based. In mode 1, resolution of 10 will mean the path will be divided into segments of length 10.
+		//If your points are equally distributed, than go for mode 0 (less work), otherwise go for mode 1 which will be more accurate (more work).
+		function trace (path,pointArray,resolution,mode) {
+			var line = d3.svg.line().interpolate("cardinal");
+			var endPath = path.cloneNode();
+			var endPathString = line(pointArray);
+			endPath.setAttribute("d",endPathString);
+			var lengthOfString = endPath.getTotalLength();
+			var sampleDistance = mode===0?lengthOfString/resolution:resolution;
+			var loopCap = mode===0?resolution:lengthOfString/resolution;
+			var sampledPoints = [];
+			for (i=0;i<=loopCap;i++) {
+				var u = endPath.getPointAtLength(i*sampleDistance);
+				sampledPoints[i] = [u.x,u.y];
+			}
+			return function(t) {
+				return t<1?line(sampledPoints.slice(0,Math.max(1,Math.floor(t*loopCap)))):line(pointArray)
+			}
+		}
+		function traceBack (path,pointArray,resolution,mode) {
+			var line = d3.svg.line().interpolate("cardinal");
+			var endPath = path.cloneNode();
+			var endPathString = line(pointArray);
+			endPath.setAttribute("d",endPathString);
+			var lengthOfString = endPath.getTotalLength();
+			var sampleDistance = mode===0?lengthOfString/resolution:resolution;
+			var loopCap = mode===0?resolution:lengthOfString/resolution;
+			var sampledPoints = [];
+			for (i=0;i<=loopCap;i++) {
+				var u = endPath.getPointAtLength(i*sampleDistance);
+				sampledPoints[i] = [u.x,u.y];
+			}
+			return function(t) {
+				return t<1?line(sampledPoints.slice(0,Math.max(1,Math.floor((1-t)*loopCap)))):line([pointArray[0]])
+			}
+		}
+		<!--Global Trace Function for paths-->
 		
 			//***Subs***
 			
@@ -4124,6 +5611,7 @@
 			//notify that I have been going down the well with someone else's rope..Well ok, perhaps I didn't have one of my own but that still doesn't change the fact.
 			//alert("With the recent update of chrome there has been a performance issue.\nBefore you begin anything on the page, click on the 'All' above 'Font-Size:1.0x'.\nA dropdown menu will appear.\nRandomly click on the few of the choices.\nThen click back on the 'All' to close dropdown menu.\nThe issue will be resolved.\nYou can watch a demonstration at http://i-pv.org/gifs/chromeGood.gif\nThank you for your understanding,\n\nIbrahim Tanyalcin");
 			//notify that I have been going down the well with someone else's rope..Well ok, perhaps I didn't have one of my own but that still doesn't change the fact.
+			<!--Copyright Ibrahim Tanyalcin 2012-2016, All Rights Reserved.--!>
 			
         </script>
 		

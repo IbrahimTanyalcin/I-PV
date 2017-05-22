@@ -1,0 +1,1 @@
+TNF-alpha 29000000 55000000 Transmembrane property=Transmembrane,svgclass=connector,svgid=Connector_30-55

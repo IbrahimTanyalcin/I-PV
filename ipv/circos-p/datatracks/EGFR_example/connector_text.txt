@@ -1,6 +1,0 @@
-EGFR 0 24000000 signal_sequence property=signal,svgclass=connector,svgid=Connector_1-24
-EGFR 29000000 297000000 missing_variant_in_a_lung_cancer_sample property=missingVariant,svgclass=connector,svgid=Connector_30-297
-EGFR 687000000 704000000 dimerization property=dimerization,svgclass=connector,svgid=Connector_688-704
-EGFR 744000000 745000000 ATP_binding property=ATP,svgclass=connector,svgid=Connector_745-745
-EGFR 854000000 855000000 ATP_binding property=ATP,svgclass=connector,svgid=Connector_855-855
-EGFR 1015000000 1016000000 PIK3C2B_interaction property=PIK3C2B,svgclass=connector,svgid=Connector_1016-1016
