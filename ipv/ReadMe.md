@@ -6,11 +6,11 @@ If on windows, versions of circos newer than 0.67-7 will give an error, replace 
 Directions:
 
 1. Extract the archive anywhere in your computer.
-2. Open SNPtoAA_44_colorMuts.pl in ./script folder and move to line 880. Search for a variable called $circos
+2. Open SNPtoAA_45_indoril.pl in ./script folder and move to line 903. Search for a variable called $circos
 3. Change the value of the $circos variable to the path to your version of circos script file. You are required to do this only the first time you are using i-PV.
 4. Place the input files (mRNA sequence, protein sequence, conservation scores(numbers separated by newlines) and variation (biomart-ensembl format) ) in the input folder.
 5. If your variation file does not match the format than try the helper scripts as mentioned in the beginning of this readme.
-6. Run the SNPtoAA_44_colorMuts.pl in the script folder.
+6. Run the SNPtoAA_45_indoril.pl.
 7. Follow the onscreen instructions.
 8. Your output will be located in the ./Output directory. Your datatracks will be generated in the ./datatracks folder. These are instructions for circos, you can delete them or keep for to modify and use later with the invokeCircos script.
 9. You only need the html file, the rest you can delete.
@@ -21,4 +21,4 @@ You can watch the tutorial videos online at i-pv.org
 Are you looking for the Javascript codes? Go to the circos-p/templates folder, you will see 2 files; javascript.txt and javascript_noconnector.txt.
 If you did not specify any connectors, than javascript_noconnector.txt is used or vice versa. The javascript is encapsulated inside the html tag of which the svg will be embedded by the perl script.
 
-***The examples belong to version 1.44.
+***The examples belong to version 1.45.
