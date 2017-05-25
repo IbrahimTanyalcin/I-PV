@@ -1,0 +1,1 @@
+BRCA1 344000000 507000000 Serine-rich property=Serine-rich,svgclass=connector,svgid=Connector_345-507
