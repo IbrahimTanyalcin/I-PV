@@ -1,0 +1,41 @@
+{
+  "name": "ibowankenobi-i-pv",
+  "version": "0.0.0",
+  "description": "Interactive Protein Sequence VIsualization/Viewer - Interactive Circos",
+  "main": "./i-pv/script/SNPtoAA.pl",
+  "access": "public",
+  "scripts": {
+	"makeMasterBranch": "cross-env-shell BRANCH_NAME=v1.46 node ./util/makeMasterBranch.js", 
+    "bumpPatch": "cross-env-shell npm version patch -no-git-tag-version --force",
+    "bumpMinor": "cross-env-shell npm version minor -no-git-tag-version --force",
+    "bumpMajor": "cross-env-shell npm version major -no-git-tag-version --force",
+    "gitCommit": "cross-env-shell git commit -m ${npm_package_version}",
+    "gitTag": "cross-env-shell git tag ${npm_package_version}",
+    "gitAddAll": "git add -A",
+    "gitPush": "git push",
+    "gitPushTags": "git push --tags",
+    "setGit": "npm run gitAddAll && npm run gitCommit && npm run gitTag && npm run gitPush && npm run gitPushTags",
+    "publishRest": "npm run setGit && npm publish",
+    "publishPatch": "npm run bumpPatch && npm run publishRest",
+    "publishMinor": "npm run bumpMinor && npm run publishRest",
+    "publishMajor": "npm run bumpMajor && npm run publishRest"
+  },
+  "keywords": [
+    "interactive",
+    "protein",
+    "javascript",
+    "algorithm",
+    "sequence",
+    "visualization",
+    "genetics",
+    "proteomics",
+    "genomics",
+	"omics"
+  ],
+  "author": "Ibrahim Tanyalcin",
+  "license": "MIT",
+  "devDependencies": {
+  },
+  "dependencies": {
+  }
+}

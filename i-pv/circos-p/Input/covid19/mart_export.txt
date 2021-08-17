@@ -1,0 +1,1 @@
+Variant name	Variant source	Strand	Variant alleles	1000 Genomes global minor allele frequency (all individuals)	Transcript stable ID	Transcript strand	Variant start in CDS (bp)	Variant end in CDS (bp)	PolyPhen score	SIFT score

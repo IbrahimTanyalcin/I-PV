@@ -1,0 +1,6 @@
+NFKB1 541000000 572000000 repeat property=repeat,svgclass=connector,svgid=Connector_542-572
+NFKB1 580000000 613000000 repeat property=repeat,svgclass=connector,svgid=Connector_581-613
+NFKB1 613000000 646000000 repeat property=repeat,svgclass=connector,svgid=Connector_614-646
+NFKB1 649000000 682000000 repeat property=repeat,svgclass=connector,svgid=Connector_650-682
+NFKB1 683000000 717000000 repeat property=repeat,svgclass=connector,svgid=Connector_684-717
+NFKB1 717000000 750000000 repeat property=repeat,svgclass=connector,svgid=Connector_718-750

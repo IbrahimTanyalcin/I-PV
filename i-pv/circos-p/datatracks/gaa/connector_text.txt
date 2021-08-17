@@ -1,0 +1,14 @@
+GAA 0 27000000 Signal_peptide property=Signal_peptide,svgclass=connector,svgid=Connector_1-27
+GAA 27000000 69000000 Propeptide property=Propeptide,svgclass=connector,svgid=Connector_28-69
+GAA 81000000 109000000 Disulfide_bond property=Disulfide_bond,svgclass=connector,svgid=Connector_82-109
+GAA 91000000 108000000 Disulfide_bond property=Disulfide_bond,svgclass=connector,svgid=Connector_92-108
+GAA 102000000 127000000 Disulfide_bond property=Disulfide_bond,svgclass=connector,svgid=Connector_103-127
+GAA 139000000 140000000 Glycosylation property=Glycosylation,svgclass=connector,svgid=Connector_140-140
+GAA 232000000 233000000 Glycosylation property=Glycosylation,svgclass=connector,svgid=Connector_233-233
+GAA 389000000 390000000 Glycosylation property=Glycosylation,svgclass=connector,svgid=Connector_390-390
+GAA 469000000 470000000 Glycosylation property=Glycosylation,svgclass=connector,svgid=Connector_470-470
+GAA 532000000 558000000 Disulfide_bond property=Disulfide_bond,svgclass=connector,svgid=Connector_533-558
+GAA 646000000 658000000 Disulfide_bond property=Disulfide_bond,svgclass=connector,svgid=Connector_647-658
+GAA 651000000 652000000 Glycosylation property=Glycosylation,svgclass=connector,svgid=Connector_652-652
+GAA 881000000 882000000 Glycosylation property=Glycosylation,svgclass=connector,svgid=Connector_882-882
+GAA 924000000 925000000 Glycosylation property=Glycosylation,svgclass=connector,svgid=Connector_925-925

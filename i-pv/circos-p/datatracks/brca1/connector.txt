@@ -1,0 +1,2 @@
+BRCA1 425500000 344000000 property=Serine-rich
+BRCA1 425500000 507000000 property=Serine-rich

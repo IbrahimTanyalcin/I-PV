@@ -1,0 +1,5 @@
+ACE2 372000000 375000000 Zn property=zinc,svgclass=connector,svgid=Connector_373-375
+ACE2 373000000 376000000 Active_Site property=active,svgclass=connector,svgid=Connector_374-376
+ACE2 376000000 379000000 Zn property=zinc,svgclass=connector,svgid=Connector_377-379
+ACE2 400000000 403000000 Zn property=zinc,svgclass=connector,svgid=Connector_401-403
+ACE2 503000000 506000000 Active_Site property=active,svgclass=connector,svgid=Connector_504-506

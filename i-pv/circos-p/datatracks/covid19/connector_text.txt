@@ -1,0 +1,2 @@
+COVID 9000000 667000000 S1_subunit property=sone,svgclass=connector,svgid=Connector_10-667
+COVID 667000000 1273000000 S2_subunit property=stwo,svgclass=connector,svgid=Connector_668-1273
