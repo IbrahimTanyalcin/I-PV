@@ -1,8 +1,9 @@
 !function(){
 	const {exec} = require('child_process'),
 		ARGV = process.argv.slice(2),
-		ARG = ARGV[0],
-		ARGmessage = ARGV[1] || "",
+		ARG = ARGV[0], //commandline arg 1
+		ARGmessage = ARGV[1] || "", //commandline arg 2
+		branchName = process.env.BRANCH_NAME,
 		execute = function (str){
 			const retVal = new Promise((res, rej) => {
 				exec(str, (err, stdout, stderr) => {
@@ -34,26 +35,16 @@
 			});
 			return retVal;
 		};
-	if(!/^(?:[0-9]+\.){2}[0-9]+$/.test(ARG)){
-		console.log("child processes use '${npm_package_version}' or 'process.env.npm_package_version', "
-		+ "make sure version argument is semver compliant, like 3.2.1 etc.");
-		return;
-	}
-	execute('npm run updatePckgJSON -- ' + ARG)
+
+	execute('cross-env-shell git checkout ' + branchName)
 	.then(function(res){
-		return execute('npm run updateReadme -- ' + ARG)
+		return execute('cross-env-shell git merge -s ours master')
 	})
 	.then(function(res){
-		return execute('npm run gitAddAll');
+		return execute('cross-env-shell git checkout master');
 	})
 	.then(function(res){
-		return execute("cross-env-shell git commit -m " + ['\\"',ARG, ARGmessage,'\\"'].join(" "));
+		return execute('cross-env-shell git merge ' + branchName);
 	})
-	.then(function(res){
-		return execute("cross-env-shell git tag -f " + ARG);
-	})
-	.then(function(res){
-		return execute("npm run gitPush && npm run gitPushTags");
-	})
-	.catch(function(reason){console.log("Promise thrown or rejected. Reason:\n" + reason)});
+	.catch(function(reason){console.log('Promise thrown or rejected. Reason:\n' + reason)});
 }();
