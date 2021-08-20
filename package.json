@@ -22,7 +22,7 @@
     "gitTag": "cross-env-shell node ./util/gitTag.js",
     "gitAddAll": "git add -A",
     "gitPush": "git push",
-    "gitPushTags": "git push --tags",
+    "gitPushTags": "git push --tags --force",
     "setGit": "npm run gitAddAll && npm run gitCommit && npm run gitTag && npm run gitPush && npm run gitPushTags",
     "publishRest": "npm run setGit && npm publish",
     "publishPatch": "npm run bumpPatch && npm run publishRest",

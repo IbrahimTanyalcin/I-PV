@@ -34,9 +34,9 @@
 			});
 			return retVal;
 		};
-	execute('cross-env-shell git tag NPM_' + NPM_VERSION)
+	execute('cross-env-shell git tag -f NPM_' + NPM_VERSION)
 	.then(function(res){
-		return execute('cross-env-shell git tag IPV_' + pckjson.org_ipv.version);
+		return execute('cross-env-shell git tag -f IPV_' + pckjson.org_ipv.version);
 	})
 	.catch(function(reason){console.log('Promise thrown or rejected. Reason:\n' + reason)});
 }();
