@@ -40,6 +40,8 @@ Suppose you exited the i-pv after generation of circos datatracks. And then you 
 >
 > 👉 Use circos version 0.67-7. <br>
 >
+> 👉 If you are using perl 5.22 use the provided `circos-0.67-7_perl_5_22` circos distribution. If you are using perl 5.26, use the other. The only difference between these packages are the `SVG.pm` regex expressions.
+>
 > 👉 If on windows, versions of circos newer than 0.67-7 will give an error, replace the circos file in the *./bin folder* of circos with the same file coming from 0.67-7 version. <br>
 >
 > 👉 If you use these newer versions, a compulsory white background is added. So when your output from i-pv is generated, go to `./Output` folder and open the html file, search for a group with the id of `bg` and remove it. This should solve the white background issue. <br>

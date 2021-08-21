@@ -1,4 +1,10 @@
-# I-PV <img src="./logo.png" width='70' height='auto' style='float:right;'>
+# I-PV <img src="https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/logo.png?raw=true" width='70' height='auto' style='float:right;'>
+
+[![NPM](https://nodei.co/npm/ibowankenobi-i-pv.png)](https://nodei.co/npm/ibowankenobi-i-pv/)
+
+## Read the article
+
+[![link](https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/i-pv_article.jpeg)](https://academic.oup.com/bioinformatics/article/32/3/447/1743584)
 
 ## Interactive Protein Sequence VIsualization/Viewer
 
@@ -14,6 +20,8 @@ post the files in the datatracks folder as supplementary.
 
 In I-PV is designed to convey complex proteomics information to the audience in an interesting format. 
 
-Below is a [sample output](http://i-pv.org/EGFR.html).
+Below are some [sample outputs](http://i-pv.org/EGFR.html).
 
-![alt tag](./sample.png)
+![alt tag](https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/sample.png?raw=true)
+
+![alt tag 2](https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/sample2.png?raw=true)

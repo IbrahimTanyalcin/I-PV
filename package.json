@@ -1,6 +1,6 @@
 {
   "name": "ibowankenobi-i-pv",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "org_ipv": {
     "version": "1.46"
   },
@@ -26,9 +26,10 @@
     "setGit": "npm run gitAddAll && npm run gitCommit && npm run gitTag && npm run gitPush && npm run gitPushTags",
     "publishRest": "npm run setGit && npm publish",
     "publishPatch": "npm run bumpPatch && npm run publishRest",
+    "publishPatchNPM": "npm run bumpPatchNPM && npm run publishRest",
     "publishMinor": "npm run bumpMinor && npm run publishRest",
     "publishMajor": "npm run bumpMajor && npm run publishRest",
-	"syncMirror": "cross-env-shell node ./util/syncMirror.js"
+    "syncMirror": "cross-env-shell node ./util/syncMirror.js"
   },
   "keywords": [
     "interactive",
