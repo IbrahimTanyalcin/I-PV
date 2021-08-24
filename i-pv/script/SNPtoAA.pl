@@ -5,6 +5,7 @@ use IPC::System::Simple qw(system capture run);
 use File::Copy qw(copy);
 use File::Copy qw(move);
 use Getopt::Long;
+use FindBin;
 
 my $PATH;
 my $help;
@@ -902,7 +903,7 @@ print "Filehandles at datatracks folder are closed.\nYou can now change these fo
 #Run circos
 print "Running circos..\n";
 my $circos = "C:/strawberry/circos-0.67-7/bin/circos";
-my $circos_results = system($^X, $circos, "-conf=../circos-p/templates/circos_template.conf", "-outputdir=../circos-p/Output");
+my $circos_results = system($^X, $circos, "-conf=$FindBin::Bin/../circos-p/templates/circos_template.conf", "-outputdir=$FindBin::Bin/../circos-p/Output");
 print "Your image is created..\n";
 #Run circos
 

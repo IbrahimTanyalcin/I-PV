@@ -1,8 +1,8 @@
 {
   "name": "ibowankenobi-i-pv",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "org_ipv": {
-    "version": "1.46"
+    "version": "1.47"
   },
   "description": "Interactive Protein Sequence VIsualization/Viewer - Interactive Circos",
   "main": "./i-pv/script/SNPtoAA.pl",
