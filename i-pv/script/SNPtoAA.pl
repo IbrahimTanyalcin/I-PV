@@ -13,7 +13,7 @@ my $explanation = "Colors: Colors can be prefixed by 1 or 2 v's (stands for very
 my $version;
 getopt();
 defined $help ? print $explanation : print "" ;
-defined $version ? print "version 1.46\n" : print "" ;
+defined $version ? print "version 1.47\n" : print "" ;
 
 
 if ((defined $PATH)&&($PATH =~ /^.*\/.*\s*|^-.*\/.*\s*/)) {

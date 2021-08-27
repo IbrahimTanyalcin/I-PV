@@ -4,7 +4,7 @@
 
 ## Read the article
 
-[![link](https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/i-pv_article.jpeg)](https://academic.oup.com/bioinformatics/article/32/3/447/1743584)
+[![link](https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/i-pv_article.jpeg?raw=true)](https://academic.oup.com/bioinformatics/article/32/3/447/1743584)
 
 ## Interactive Protein Sequence VIsualization/Viewer
 
@@ -25,3 +25,15 @@ Below are some [sample outputs](http://i-pv.org/EGFR.html).
 ![alt tag](https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/sample.png?raw=true)
 
 ![alt tag 2](https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/sample2.png?raw=true)
+
+## Publishing
+
+- Run one of the publish scripts within `package.json`:
+
+```
+npm run publishPatchNPM
+```
+- The `gitTag.js` inside `/utils` can both update `npm` version and `org_ipv` version. 
+- If you change peripheral files only, increment `npm` version. 
+- If you change `SNPtoAA.pl`, increment both `npm` version and `org_ipv` version.
+- Choose the right publish script based on above.
