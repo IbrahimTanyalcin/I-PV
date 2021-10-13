@@ -1,31 +1,87 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Data::Dumper qw(Dumper);
+use feature 'say';
 use IPC::System::Simple qw(system capture run);
 use File::Copy qw(copy);
 use File::Copy qw(move);
+use File::Basename qw(basename dirname);
+use File::Spec qw(catfile);
 use Getopt::Long;
 use FindBin;
+use JSON::XS;
+use List::Util qw(max);
+use Cwd qw(abs_path);
+use lib dirname(abs_path $0);
+use ipv_modules::consumeInput qw(consumeInput);
+use ipv_modules::config;
 
 my $PATH;
 my $help;
-my $explanation = "Colors: Colors can be prefixed by 1 or 2 v's (stands for very) followed by l (light) or d (dark) and then root, all in small letters.\nThese are the root color names:\nRed, blue, green, yellow, orange, grey, purple\nMagenta, brown, cyan\nCrimson, warmchampagne, ashlight, firelight, angelica.\nInvoking Circos: Make sure that the path specified in line 843 directs to the correct location.\nOtherwise circos will not be invoked.\n";
+my $explanation = [
+	"Colors: Colors can be prefixed by 1 or 2 v's (stands for very),",
+	"followed by l (light) or d (dark) and then root, all in small letters.",
+	"These are the root color names:",
+	"red, blue, green, yellow, orange, grey, purple",
+	"magenta, brown, cyan, crimson, warmchampagne,",
+	"ashlight, firelight, angelica.",
+	"For example, 'vdred' means 'very dark red'.",
+	"Invoking Circos:",
+	"Make sure that the path specified in line 1221",
+	"directs to the correct location.",
+	"Otherwise circos will not be invoked."
+];
 my $version;
+my $config;
+my $configJSON;
+my $consumer;
+
 getopt();
-defined $help ? print $explanation : print "" ;
-defined $version ? print "version 1.47\n" : print "" ;
+defined $help ? say join("\n", @{$explanation}) : print "" ;
+defined $version ? print "version 2.0\n" : print "" ;
 
+if(defined $config){
+	if(!(-e $config)){
+		die "the configuration file you provided does not exist!";
+	}
+	my $configStr = do {
+		local $/ = undef;
+		open (my $configFile, "<", File::Spec -> catfile(dirname($config), basename($config))) 
+		or die "Cannot open the config file!\n";
+		<$configFile>;
+	};
+	$configJSON = decode_json $configStr;
+	$consumer = ipv_modules::config -> new(basename($config), $configJSON);
+} else {
+	$consumer = ipv_modules::config -> new($config, $configJSON);
+}
 
-if ((defined $PATH)&&($PATH =~ /^.*\/.*\s*|^-.*\/.*\s*/)) {
+$| = consumeInput(
+	["autoflush"], 
+	$configJSON,
+	{
+		"callback" => $consumer -> autoflush -> {callback}
+	}
+);
+
+if ((defined $PATH)&&($PATH =~ /^.*[\/\\].*\s*|^-.*[\/\\].*\s*/)) {
 	$PATH = $PATH;
 	chomp $PATH;
 } else {
-	print "Please type the path or enter to skip to keep relative paths...\n";
-	$_ = <STDIN>;
+	$consumer -> query("Please type the path or enter to skip to keep relative paths...\n");
+	$_ = consumeInput(
+		["path"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> path -> {callback}
+		}
+	);
 	chomp $_;
 	$PATH = "-".$_;
-	if ($PATH !~ /.*\/.*/) {
-	$PATH = "..";
+	if ($PATH !~ /.*[\/\\].*/) {
+		$PATH = "..";
 	}
 }
 my $PATH_domestic = $PATH;
@@ -34,14 +90,72 @@ if ($PATH_domestic eq "") {
 	$PATH_domestic = "..";
 }
 
-my %degenerate_code = ("A" => ["GCT","GCC","GCA","GCG","Nonpolar"], "R" => ["CGT","CGC","CGA","CGG","AGA","AGG","Positive"], "N" => ["AAT","AAC","Polar"], "D" => ["GAT","GAC","Negative"], "C" => ["TGT","TGC","Polar"], "Q" => ["CAA","CAG","Polar"], "E" => ["GAA","GAG","Negative"], "G" => ["GGT","GGC","GGA","GGG","Nonpolar"], "H" => ["CAT","CAC","Positive"], "I" => ["ATT","ATC","ATA","Nonpolar"], "L" => ["TTA","TTG","CTT","CTC","CTA","CTG","Nonpolar"], "K" => ["AAA","AAG","Positive"], "M" => ["ATG","Nonpolar"], "F" => ["TTT","TTC","Aromatic"], "P" => ["CCT","CCC","CCA","CCG","Nonpolar"], "S" => ["TCT","TCC","TCA","TCG","AGT","AGC","Polar"], "T" => ["ACT","ACC","ACA","ACG","Polar"], "W" => ["TGG","Aromatic"], "Y" => ["TAT","TAC","Aromatic"], "V" => ["GTT","GTC","GTA","GTG","Nonpolar"], "X" => ["TAA","TGA","TAG","STOP"]);
-my %aa_names = ("A" => "Alanine", "R" => "Arginine", "N" => "Asparagine", "D" => "Aspartic-Acid", "C" => "Cysteine", "Q" => "Glutamine", "E" => "Glutamic-Acid", "G" => "Glycine", "H" => "Histidine", "I" => "Isoleucine", "L" => "Leucine", "K" => "Lysine", "M" => "Methionine", "F" => "Phenylalanine", "P" => "Proline", "S" => "Serine", "T" => "Threonine", "W" => "Tryptophan", "Y" => "Tyrosine", "V" => "Valine", "X" => "STOP");
+$consumer -> path -> {setRelPath} -> ($PATH_domestic);
+$consumer -> set("scriptPath", dirname(abs_path(__FILE__)));
+
+my %degenerate_code = (
+	"A" => ["GCT","GCC","GCA","GCG","Nonpolar"], 
+	"R" => ["CGT","CGC","CGA","CGG","AGA","AGG","Positive"], 
+	"N" => ["AAT","AAC","Polar"], 
+	"D" => ["GAT","GAC","Negative"], 
+	"C" => ["TGT","TGC","Polar"], 
+	"Q" => ["CAA","CAG","Polar"], 
+	"E" => ["GAA","GAG","Negative"], 
+	"G" => ["GGT","GGC","GGA","GGG","Nonpolar"], 
+	"H" => ["CAT","CAC","Positive"], 
+	"I" => ["ATT","ATC","ATA","Nonpolar"], 
+	"L" => ["TTA","TTG","CTT","CTC","CTA","CTG","Nonpolar"], 
+	"K" => ["AAA","AAG","Positive"], 
+	"M" => ["ATG","Nonpolar"], 
+	"F" => ["TTT","TTC","Aromatic"], 
+	"P" => ["CCT","CCC","CCA","CCG","Nonpolar"], 
+	"S" => ["TCT","TCC","TCA","TCG","AGT","AGC","Polar"], 
+	"T" => ["ACT","ACC","ACA","ACG","Polar"], 
+	"W" => ["TGG","Aromatic"], 
+	"Y" => ["TAT","TAC","Aromatic"], 
+	"V" => ["GTT","GTC","GTA","GTG","Nonpolar"], 
+	"X" => ["TAA","TGA","TAG","STOP"]
+);
+my %aa_names = (
+	"A" => "Alanine", 
+	"R" => "Arginine", 
+	"N" => "Asparagine", 
+	"D" => "Aspartic-Acid", 
+	"C" => "Cysteine", 
+	"Q" => "Glutamine", 
+	"E" => "Glutamic-Acid", 
+	"G" => "Glycine", 
+	"H" => "Histidine", 
+	"I" => "Isoleucine", 
+	"L" => "Leucine", 
+	"K" => "Lysine", 
+	"M" => "Methionine", 
+	"F" => "Phenylalanine", 
+	"P" => "Proline", 
+	"S" => "Serine", 
+	"T" => "Threonine", 
+	"W" => "Tryptophan", 
+	"Y" => "Tyrosine", 
+	"V" => "Valine", 
+	"X" => "STOP"
+);
 
 REENTER_FASTA:
-print "Please enter the full name of your fasta file with the extention...[e.g fasta.txt]\n";
-my $fasta = <STDIN>;
+$consumer -> query("Please enter the full name of your fasta file with the extention...[e.g fasta.txt]\n");
+my $fasta = consumeInput(
+	["proteinFileName"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> fasta -> {callback}
+	}
+);
 chomp $fasta;
-open(my $fastafile, '<',"$PATH_domestic/circos-p/Input/$fasta") or goto REENTER_FASTA;
+
+open(my $fastafile, '<', $consumer -> path -> {input} -> ($fasta, "fasta")) 
+or $consumer -> {configDefined}
+	? $consumer -> err(["Cannot open $fasta"])
+	: goto REENTER_FASTA;
 my @fasta_array = ();
 while (<$fastafile>) {
 	if ($_ =~ /.*[>]+.*/ || $_ =~ /.*[|.;]+.*/ || $_ !~ /^[ARNDBCQEZGHILKMFPSTWYVarndbcqezghilkmfpstwyv]+\s*$/) {
@@ -63,11 +177,21 @@ list_creation();
 
 
 REENTER_CDNA:
-print "Type the cdna file name...[e.g mrna.txt]\n";
-$_ = <STDIN>;
+$consumer -> query("Type the cdna file name...[e.g mrna.txt]\n");
+$_ = consumeInput(
+	["mrnaFileName"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> mrna -> {callback}
+	}
+);
 chomp $_;
 my $cdnafilename = $_;
-open(my $cdnafile, '<',"$PATH_domestic/circos-p/Input/$cdnafilename") or goto REENTER_CDNA;
+open(my $cdnafile, '<', $consumer -> path -> {input} -> ($cdnafilename, "cdna")) 
+or $consumer -> {configDefined}
+	? $consumer -> err(["Cannot open $cdnafilename"])
+	: goto REENTER_CDNA;
 my @cdna_array = ();
 while (<$cdnafile>) {
 	if ($_ =~ /.*[>]+.*/ || $_ =~ /.*[|.;]+.*/ || $_ !~ /^(\s*[ATCGatcg]+\s*)+$/) {
@@ -108,7 +232,7 @@ for (my $i = 0; $i < 3;$i++) {
 my $shift_count;
 my $pop_count;
 if ($cdna_translated_candidates[0] eq $protein_code) {
-	print "Your cDNA exactly matches your fasta file.Continuing...\n";
+	print "Your cDNA exactly matches your fasta file. Continuing...\n";
 	$shift_count = 0;
 	$pop_count = 0;
 } elsif ($cdna_translated_candidates[0] =~ /$protein_code/) {
@@ -156,24 +280,26 @@ if (scalar(@cdna_array) % 3 != 0) {
 
 
 
-print "What is the name of your protein?[e.g BRCA1]\n";
-$_ = <STDIN>;
+$consumer -> query("What is the name of your protein?[e.g BRCA1]\n");
+$_ = consumeInput(
+	["name"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> protein -> {name}
+	}
+);
 chomp $_;
 $protein_name = $_;
-open(my $karyotypefile, '>',"$PATH_domestic/circos-p/datatracks/karyotype.txt") or die "Cannot open the karyotype file!\n";
+open(my $karyotypefile, '>', $consumer -> path -> {datatracks} -> ("karyotype")) or die "Cannot open the karyotype file!\n";
 print "Making karyotype file...\n";
 print $karyotypefile "chr - ".$protein_name." ".$protein_name." "."0"." ".$protein_length."000000"." "."vdgrey"."\n";
 print "KARYOTYPE::OK\n";
 
 
-
-#my %degenerate_code = ("A" => ["GCT","GCC","GCA","GCG","Nonpolar"], "R" => ["CGT","CGC","CGA","CGG","AGA","AGG","Positive"], "N" => ["AAT","AAC","Polar"], "D" => ["GAT","GAC","Negative"], "C" => ["TGT","TGC","Polar"], "Q" => ["CAA","CAG","Polar"], "E" => ["GAA","GAG","Negative"], "G" => ["GGT","GGC","GGA","GGG","Nonpolar"], "H" => ["CAT","CAC","Positive"], "I" => ["ATT","ATC","ATA","Nonpolar"], "L" => ["TTA","TTG","CTT","CTC","CTA","CTG","Nonpolar"], "K" => ["AAA","AAG","Positive"], "M" => ["ATG","Nonpolar"], "F" => ["TTT","TTC","Aromatic"], "P" => ["CCT","CCC","CCA","CCG","Polar"], "S" => ["TCT","TCC","TCA","TCG","AGT","AGC","Polar"], "T" => ["ACT","ACC","ACA","ACG","Polar"], "W" => ["TGG","Aromatic"], "Y" => ["TAT","TAC","Aromatic"], "V" => ["GTT","GTC","GTA","GTG","Nonpolar"], "X" => ["TAA","TGA","TAG","STOP"]);
-
-
-
 print "Making protein sequence and scatter plots...\n";
-open(my $sequencefile, '>',"$PATH_domestic/circos-p/datatracks/protein_sequence.txt") or die "Cannot open the sequence file!\n";
-open(my $scatterfile, '>',"$PATH_domestic/circos-p/datatracks/scatter.txt") or die "Cannot open the scatter file!\n";
+open(my $sequencefile, '>', $consumer -> path -> {datatracks} -> ("protein_sequence")) or die "Cannot open the sequence file!\n";
+open(my $scatterfile, '>', $consumer -> path -> {datatracks} -> ("scatter")) or die "Cannot open the scatter file!\n";
 for (my $i = 0;$i < scalar (@fasta_array);$i++) {
 	my $type;
 	foreach my $keys (keys %degenerate_code) {
@@ -190,17 +316,41 @@ print "SCATTER PLOT::OK\n";
 
 my $snp_name;
 REENTER_SNP:
-print "Please provide the name of the SNP file...[e.g SNP.txt]\n";
-$_ = <STDIN>;
+$consumer -> query("Please provide the name of the SNP file...[e.g SNP.txt]\n");
+$_ = consumeInput(
+	["variation", "fileName"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {callback}
+	}
+);
 chomp $_;
 $snp_name = $_;
-open(my $snpfile, '<',"$PATH_domestic/circos-p/Input/$snp_name") or goto REENTER_SNP;
-print "Should we skip the header?\n";
-my $answer = <STDIN>;
+open(my $snpfile, '<', $consumer -> path -> {input} -> ($snp_name, "variation (SNPs)")) 
+or $consumer -> {configDefined}
+	? $consumer -> err(["Cannot open $snp_name"])
+	: goto REENTER_SNP;
+$consumer -> query("Should we skip the header?\n");
+my $answer = consumeInput(
+	["variation", "skipHeader"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {skipHeader}
+	}
+);
 chomp $answer;
 if ($answer =~ /y.*/) {
-	print "How many times should the header be skipped?\n";
-	my $header_skip_times = <STDIN>;
+	$consumer -> query("How many times should the header be skipped?\n");
+	my $header_skip_times = consumeInput(
+		["variation", "skipHeader"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> variation -> {skipHeaderCount}
+		}
+	);
 	chomp $header_skip_times;
 	my $skip_count = 0;
 	until ($skip_count == $header_skip_times) {
@@ -213,51 +363,168 @@ if ($answer =~ /y.*/) {
 }
 
 
-print "What is the original separator of the data? (tabs, spaces, semicolons etc...)\n[Hint: If the spaces in the file is irregular, write whitespace.]\n";
-my $separator = <STDIN>;
+$consumer -> query([
+		"What is the original separator of the data?",
+		"(tabs, spaces, semicolons etc...)",
+		"[Hint: If the spaces in the file is irregular, write 'whitespace'.]"
+	]);
+my $separator = consumeInput(
+	["variation", "separator"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {callback}
+	}
+);
 chomp $separator;
-print "You will be asked several questions below regarding SNP information.\nYou are required to enter an integer only which corresponds to a column number.\nFirst column is numbered 1, second 2 and so on..\nPress any key and enter to continue\n";
-my $emtpty_response = <STDIN>;
-print "Which column do you have the change in bases?\n[Hint: It is the column where the ancesteral and alternative alleles are separated by a forward slash(eg.A/G,C/T/A..)]\n";
-my $basechange_number = <STDIN>;
+$consumer -> query([
+	"You will be asked several questions below regarding SNP information.",
+	"You are required to enter an integer only",
+	"which corresponds to a column number.",
+	"First column is numbered 1,",
+	"second 2 and so on..",
+	"Press any key and hit enter to continue"
+]);
+my $emtpty_response = consumeInput(
+	[], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {pass}
+	}
+);
+$consumer -> query([
+	"Which column do you have the change in bases?",
+	"[Hint: It is the column where the ",
+	"ancesteral and alternative alleles",
+	"are separated by a forward slash(eg.A/G,C/T/A..)]"
+]);
+my $basechange_number = consumeInput(
+	["variation", "colBaseChange"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {colBaseChange}
+	}
+);
 chomp $basechange_number;
 $basechange_number -= 1;
-print "Which column do you have the type of substitution?\nIf you do not have a type set, you can also enter the previously given base change column.\n";
-my $substitiontype_number = <STDIN>;
+$consumer -> query([
+	"Which column do you have the type of substitution?",
+	"If you do not have a type set, you can also enter",
+	"the previously given base change column."
+]);
+my $substitiontype_number = consumeInput(
+	["variation", "colSubsType"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {colSubsType}
+	}
+);
 chomp $substitiontype_number;
 $substitiontype_number -= 1;
-print "Which column do you have the substitution coordinates?\n[Hint: Choose the Coding Start column.]\n";
-my $substitioncoordinates_number = <STDIN>;
+$consumer -> query([
+	"Which column do you have the substitution coordinates?",
+	"[Hint: Choose the Coding Start column.]"
+]);
+my $substitioncoordinates_number = consumeInput(
+	["variation", "colSubsCoords"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {colSubsCoords}
+	}
+);
 chomp $substitioncoordinates_number;
 $substitioncoordinates_number -= 1;
-print "Which column do you have the validation status?\nIf not applicapable, enter the same column as base change, the column where writes A/G,C/T/A etc..\n";
-my $validationstatus_number = <STDIN>;
+$consumer -> query([
+	"Which column do you have the validation status?",
+	"If not applicapable, enter the same column as base change,",
+	"the column where writes A/G,C/T/A etc.."
+]);
+my $validationstatus_number = consumeInput(
+	["variation", "colValStat"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {colValStat}
+	}
+);
 chomp $validationstatus_number;
 $validationstatus_number -= 1;
-print "Which column do you have the strand of the change?\n[Hint: This is the column where indicates + or - or 1 or -1 for the strand.]\n";
-my $strand_number = <STDIN>;
+$consumer -> query([
+	"Which column do you have the strand of the change?",
+	"[Hint: This is the column where indicates + or - or 1 or -1 for the strand.]"
+]);
+my $strand_number = consumeInput(
+	["variation", "colBaseChangeStrand"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {colBaseChangeStrand}
+	}
+);
 chomp $strand_number;
 $strand_number -= 1;
-print "Which stand is your gene located in?\n[Hint: You can check this from publicly available genome browsers.\nYou can enter plus,positive,+,1 or inverse of these parameters.]\n";
-my $gene_location = <STDIN>;
+$consumer -> query([ 
+	"Which stand is your gene located in?",
+	"[Hint: You can check this from publicly available genome browsers.",
+	"You can enter plus,positive,+,1 or inverse of these parameters.]"
+]);
+my $gene_location = consumeInput(
+	["variation", "colGeneStrand"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {colGeneStrand}
+	}
+);
 chomp $gene_location;
-print "Please enter your transcript ID [e.g ENGXXXXXXXX,NM_YYYYYY. ].\n[Hint: Write 'ProcessAll' to skip transcript filtering..]\n";
-my $transcript_ID = <STDIN>;
+$consumer -> query([
+	"Please enter your transcript ID [e.g ENGXXXXXXXX,NM_YYYYYY. ].",
+	"[Hint: Write 'ProcessAll' to skip transcript filtering..]"
+]);
+my $transcript_ID = consumeInput(
+	["variation", "transcriptID"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {callback}
+	}
+);
 my $transcript_ID_column;
 chomp $transcript_ID;
 if ($transcript_ID =~ /ProcessAll/) {
 	$transcript_ID_column = "N/A";
 } else {
-	print "Please enter in which column your transcript IDs are located in\n";
-	$transcript_ID_column = <STDIN>;
+	$consumer -> query("Please enter in which column your transcript IDs are located in\n");
+	$transcript_ID_column = consumeInput(
+		["variation", "colTranscriptID"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> variation -> {colTranscriptID}
+		}
+	);
 	$transcript_ID_column -= 1;
 }
 
 ###PREDICTIONS###
 my $polyphen2;
 RETRY_POLYPHEN2:
-print "Which column do you have the polyphen2 scores?\n[Hint: Choose the polyphen2 score column. If not available write enter 'NA']\n";
-$polyphen2 = <STDIN>;
+$consumer -> query([
+	"Which column do you have the polyphen2 scores?",
+	"[Hint: Choose the polyphen2 score column. If not available write enter 'NA']"
+]);
+$polyphen2 = consumeInput(
+	["variation", "colPolyphen2"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {colPolyphen2}
+	}
+);
 chomp $polyphen2;
 if ($polyphen2 !~ /^[1-9]+[0-9]*$|^na$/i) {
 	goto RETRY_POLYPHEN2;
@@ -266,8 +533,19 @@ if ($polyphen2 !~ /^[1-9]+[0-9]*$|^na$/i) {
 }
 my $sift;
 RETRY_SIFT:
-print "Which column do you have the sift scores?\n[Hint: Choose the sift score column. If not available write enter 'NA']\n";
-$sift = <STDIN>;
+$consumer -> query([
+	"Which column do you have the sift scores?",
+	"[Hint: Choose the sift score column.",
+	"If not available write enter 'NA']"
+]);
+$sift = consumeInput(
+	["variation", "colSift2"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {colSift2}
+	}
+);
 chomp $sift;
 if ($sift !~ /^[1-9]+[0-9]*$|^na$/i) {
 	goto RETRY_SIFT;
@@ -279,8 +557,18 @@ if ($sift !~ /^[1-9]+[0-9]*$|^na$/i) {
 ###EXTRACT MAF###
 my $maf;
 RETRY_MAF:
-print "Which column do you have the MAF(minor allele frequency)?\n[Hint: This is a value between 0 and 1. If not available write enter 'NA']\n";
-$maf = <STDIN>;
+$consumer -> query([
+	"Which column do you have the MAF(minor allele frequency)?",
+	"[Hint: This is a value between 0 and 1. If not available write enter 'NA']"
+]);
+$maf = consumeInput(
+	["variation", "maf"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> variation -> {maf}
+	}
+);
 chomp $maf;
 if ($maf !~ /^[1-9]+[0-9]*$|^na$/i) {
 	goto RETRY_MAF;
@@ -293,7 +581,7 @@ print "Making missense SNP text plot...\n";
 my @SNPtextplot_inventory;
 my $missense_counter = 0;
 my %reversebase = ("A" => "T", "T" => "A", "C" => "G", "G" => "C");
-open(my $snpfile_missense_textplot, '>',"$PATH_domestic/circos-p/datatracks/text_plot_missense.txt") or die "Cannot open the text plot file!\n";
+open(my $snpfile_missense_textplot, '>', $consumer -> path -> {datatracks} -> ("text_plot_missense")) or die "Cannot open the text plot file!\n";
 while (<$snpfile>) {
 	chomp;
 	my @each_line =  separator ($_);
@@ -509,8 +797,8 @@ print "SNP-TEXT PLOT::OK\n";
 
 print "Making variation tile plot...\n";
 my @SNPtileplot_inventory;
-open($snpfile, '<',"$PATH_domestic/circos-p/Input/$snp_name") or die "Cannot open the snp file!\n";
-open(my $tilefile, '>',"$PATH_domestic/circos-p/datatracks/tile_plot.txt") or die "Cannot open the tile plot file!\n";
+open($snpfile, '<', $consumer -> path -> {input} -> ($snp_name, "variation (SNPs)")) or die "Cannot open the snp file!\n";
+open(my $tilefile, '>', $consumer -> path -> {datatracks} -> ("tile_plot")) or die "Cannot open the tile plot file!\n";
 my $tile_ID = 0;
 while (<$snpfile>) {
 	chomp;
@@ -681,20 +969,40 @@ if ($modictplot_answer !~ /^y.*/) {
 	goto SKIP_MODICT_1;
 }
 print "Making MODICT plot...\n";
-open(my $modictfile, '>',"$PATH_domestic/circos-p/datatracks/modict_plot.txt") or die "Cannot open the modict plot file!\n";
-print "Please type in the name of your iterator results in circos-p/input/..\n";
+open(my $modictfile, '>', $consumer -> path -> {datatracks} -> ("modict_plot")) or die "Cannot open the modict plot file!\n";
+print "Please type in the name of your iterator results in file..\n";
 my $iterator_results = <STDIN>;
 chomp $iterator_results;
 SKIP_MODICT_1:
-print "Please type in the name of your conservation file in circos-p/input/..\n";
-my $conservation = <STDIN>;
+$consumer -> query("Please type in the name of your conservation file...\n");
+my $conservation = consumeInput(
+	["conservation","consFileName"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> conservation -> {callback}
+	}
+);
 chomp $conservation;
 if ($modictplot_answer !~ /^y.*/) {
 	goto SKIP_MODICT_2;
 }
-open(my $iteratorfile, '<',"$PATH_domestic/circos-p/Input/$iterator_results") or die "Cannot open the iterator file!\n";
+open(my $iteratorfile, '<', $consumer -> path -> {input} -> ($iterator_results, "iterator results")) or die "Cannot open the iterator file!\n";
 SKIP_MODICT_2:
-open(my $conservationfile, '<',"$PATH_domestic/circos-p/Input/$conservation") or goto SKIP_MODICT_1;
+
+$consumer -> {consFile} 
+&& (
+	open(my $conservationfile, '<', $consumer -> path -> {input} -> ($conservation, "conservation")) 
+	or (
+		$consumer -> {configDefined}
+		? $consumer -> err([
+			"The filename you provided in 'conservation.consFileName'",
+			"does not seem to exist."
+		])
+		: goto SKIP_MODICT_1
+	)
+);
+	
 my @iterator_array;
 my @conservation_array;
 if ($modictplot_answer !~ /^y.*/) {
@@ -705,16 +1013,21 @@ while (<$iteratorfile>) {
 	push (@iterator_array,$_);
 }
 SKIP_MODICT_3:
-while (<$conservationfile>) {
-	chomp $_;
-	push (@conservation_array,$_);
-}
-my $conservation_min = take_min(@conservation_array);
+
+$consumer -> {consFile} && do { 
+	while (<$conservationfile>) {
+		chomp $_;
+		push (@conservation_array,$_);
+	}
+};
+
+my $conservation_min = $consumer -> {consFile} && take_min(@conservation_array);
 #the min value can create problems sometimes, print the below line to see if the real mean is picked up.
 #print "Your min value is $conservation_min.\n";
-my $conservation_max = take_max(@conservation_array);
+my $conservation_max = $consumer -> {consFile} && take_max(@conservation_array);
 #same for max
 #print "Your max value is $conservation_max.\n";
+
 if ($modictplot_answer !~ /^y.*/) {
 	goto SKIP_MODICT_4;
 }
@@ -745,11 +1058,13 @@ print "MODICT PLOT::OK\n";
 
 SKIP_MODICT_4:
 print "Making the highlights file...\n";
-open(my $highlightfile, '>',"$PATH_domestic/circos-p/datatracks/highlights.txt") or die "Cannot open the highlights file!\n";
+open(my $highlightfile, '>', $consumer -> path -> {datatracks} -> ("highlights")) or die "Cannot open the highlights file!\n";
 if ($domains[0] > 1) {
 	my $i = 0;
 	until (($i+2) > $domains[0]) {
-		my $element = shift (@conservation_array);
+		my $element = defined ((\@conservation_array) -> [0]) 
+			? shift (@conservation_array) 
+			: $consumer -> {consDefVal};
 		print $highlightfile $protein_name." ". (0+$i)*1000000 ." ".($i+1)*1000000 ." type=Coil,conservation=$element,property=n/a,svgid=Residue_".((0+$i)+1)."_Conservation-Score_$element\n";
 		$i++;
 	}
@@ -760,14 +1075,18 @@ foreach my $element (@domains) {
 		my $property = shift(@domain_properties);
 		my $i = 0;
 		until (($domains[$index_array[0]]+ $i) > $domains[$index_array[0]+1]) {
-			my $element = shift (@conservation_array);
+			my $element = defined ((\@conservation_array) -> [0]) 
+				? shift (@conservation_array) 
+				: $consumer -> {consDefVal};
 			print $highlightfile $protein_name." ".($domains[$index_array[0]] + $i - 1)*1000000 ." ".($domains[$index_array[0]]+ $i)*1000000 ." type=Domain,conservation=$element,property=$property,svgid=Residue_".(($domains[$index_array[0]] + $i - 1)+1)."_Conservation-Score_$element,svgclass=$property\n";
 			$i++;
 		}
 	} elsif ($index_array[0] != $#domains) {
 		my $i = 1;
 		until (($domains[$index_array[0]] + $i + 1) > $domains[$index_array[0]+1]) {
-			my $element = shift (@conservation_array);
+			my $element = defined ((\@conservation_array) -> [0]) 
+				? shift (@conservation_array) 
+				: $consumer -> {consDefVal};
 			print $highlightfile $protein_name." ".($domains[$index_array[0]] + $i - 1)*1000000 ." ".($domains[$index_array[0]]+ $i)*1000000 ." type=Coil,conservation=$element,property=n/a,svgid=Residue_".(($domains[$index_array[0]] + $i - 1)+1)."_Conservation-Score_$element\n";
 			$i++;
 		}
@@ -776,7 +1095,9 @@ foreach my $element (@domains) {
 if ($domains[$#domains] < $protein_length) {
 	my $i = 1;
 	until (($domains[$#domains] + $i) > $protein_length) {
-		my $element = shift (@conservation_array);
+		my $element = defined ((\@conservation_array) -> [0]) 
+			? shift (@conservation_array) 
+			: $consumer -> {consDefVal};
 		print $highlightfile $protein_name." ".($domains[$#domains] + $i - 1)*1000000 ." ".($domains[$#domains] + $i)*1000000 ." type=Coil,conservation=$element,property=n/a,svgid=Residue_".(($domains[$#domains] + $i - 1)+1)."_Conservation-Score_$element\n";
 		$i++;
 	}
@@ -784,23 +1105,31 @@ if ($domains[$#domains] < $protein_length) {
 print "HIGHLIGHTS::OK\n";
 
 
-print "Would you like to create markup file?[yes/no]\n";
-$_ = <STDIN>;
+$consumer -> query("Would you like to create markup file?[yes/no]\n");
+$_ = consumeInput(
+	["markups"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> markup -> {assign}
+	}
+);
 chomp $_;
 my $markup_choice = $_;
 if ($_ !~ /^y.*/) {
+	$markup_choice = "no";
 	print "Skipping connector graph...\n";
 	goto SKIP_CONNECTOR;
 } else {
-   $markup_choice = "yes";
+	$markup_choice = "yes";
 }
 print "Making the markup file...\n";
 my @markup = ();
 my %markup_colors;
 my $markup_count = 0;
 markup();
-open(my $connectorfile, '>',"$PATH_domestic/circos-p/datatracks/connector.txt") or die "Cannot open the connector file!\n";
-open(my $connector_text_file, '>',"$PATH_domestic/circos-p/datatracks/connector_text.txt") or die "Cannot open the connector_text file!\n";
+open(my $connectorfile, '>', $consumer -> path -> {datatracks} -> ("connector")) or die "Cannot open the connector file!\n";
+open(my $connector_text_file, '>', $consumer -> path -> {datatracks} -> ("connector_text")) or die "Cannot open the connector_text file!\n";
 for (my $i = 0; $i < scalar(@markup); $i += 4) {
 		print $connectorfile $protein_name." ".($markup[$i+1]+$markup[$i] - 1)/2*1000000 ." ".($markup[$i]-1)*1000000 ." property=".$markup[$i+3]."\n";
 		print $connectorfile $protein_name." ".($markup[$i+1]+$markup[$i] - 1)/2*1000000 ." ".($markup[$i+1])*1000000 ." property=".$markup[$i+3]."\n";
@@ -809,12 +1138,18 @@ for (my $i = 0; $i < scalar(@markup); $i += 4) {
 print "MARKUP::OK\n";
 SKIP_CONNECTOR:
 
-print "Your plot files are created under circos-p/datatracks...\n";
-#print "Your plot files are created under circos/datatracks...\nThank you and good bye...\n";
+print join(
+	"\n",
+	@{[
+		"Your plot files are created under",
+		$consumer -> path -> {datatracksDir} -> (),
+		""
+	]}
+);
 
 print "Configuring plots.conf file from plots template..\n";
-open(my $plotfile, '>',"$PATH_domestic/circos-p/datatracks/plot.txt") or die "Cannot write to plot file!\n";
-open(my $templatefile, '<',"$PATH_domestic/circos-p/templates/plots_template.txt") or die "Cannot open the template file!\n";
+open(my $plotfile, '>', $consumer -> path -> {datatracks} -> ("plot")) or die "Cannot write to plot file!\n";
+open(my $templatefile, '<', $consumer -> path -> {templates} -> ("plots_template")) or die "Cannot open the template file!\n";
 #Parameters that can go crazy
 $missense_counter = $missense_counter || 625;
 my $label_size_missense = int(40/(sqrt($missense_counter)/15));
@@ -832,11 +1167,55 @@ if ($link_thickness_missense > 6) {
 #Parameters that can go crazy
 while (<$templatefile>) {
 	if ($_ =~ /#coil_1/) {
-		print $plotfile "r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),".$conservation_min.",".$conservation_max.",0,9)] .'r')\n";
+		if ($consumer -> {consFile}) {
+			print $plotfile "r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),"
+				.$conservation_min
+				.","
+				.$conservation_max
+				.",0,9)] .'r')\n";
+		} else {
+			print $plotfile "r1 = eval("
+			."qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[" 
+			.$consumer -> {consBarHeight}
+			."] . 'r')\n";
+		}
 	} elsif ($_ =~ /#domain_colors/) {
 		foreach my $element (keys %domain_colors) {
 			my @results= prefixer ($domain_colors{$element});
-			print $plotfile "<rule>\ncondition = var(type) eq 'Domain' && var(property) eq "."'$element'"."\n"."stroke_color = ".$domain_colors{$element}."\n"."fill_color = ".$results[0].$results[1]."\n"."r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),".$conservation_min.",".$conservation_max.",0,9)] .'r')"."\n"."flow = continue\n</rule>\n";
+			if ($consumer -> {consFile}) {
+				print $plotfile "<rule>\ncondition = var(type) eq 'Domain' && var(property) eq "
+					."'$element'"
+					."\n"
+					."stroke_color = "
+					.$domain_colors{$element}
+					."\n"
+					."fill_color = "
+					.$results[0]
+					.$results[1]
+					."\n"
+					."r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),"
+					.$conservation_min
+					.","
+					.$conservation_max
+					.",0,9)] .'r')"
+					."\n"
+					."flow = continue\n</rule>\n";
+			} else {
+				print $plotfile "<rule>\ncondition = var(type) eq 'Domain' && var(property) eq "
+					."'$element'"
+					."\n"
+					."stroke_color = "
+					.$domain_colors{$element}
+					."\n"
+					."fill_color = "
+					.$results[0]
+					.$results[1]
+					."\n"
+					."r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)["
+					.$consumer -> {consBarHeight}
+					."] . 'r')\n"
+					."flow = continue\n</rule>\n";
+			}
 		}
 	} elsif ($_ =~ /#label_size_sequence/) {
 		print $plotfile "label_size = ".int(40/(sqrt(scalar(@fasta_array))/20))."p\n";
@@ -869,10 +1248,20 @@ while (<$templatefile>) {
 }
 print "Plot file created.\n";
 print "Renaming extension.\n";
-open($plotfile, '<',"$PATH_domestic/circos-p/datatracks/plot.txt") or die "Cannot read from plot file!\n";
-copy ($plotfile, "$PATH_domestic/circos-p/datatracks/plot.conf") or die "$!\n";
-print "You can either continue for image generation or run circos yourself.\ntype 'exit' and enter to quit or press any key and enter to continue..\n";
-my $continue = <STDIN>;
+open($plotfile, '<', $consumer -> path -> {datatracks} -> ("plot")) or die "Cannot read from plot file!\n";
+copy ($plotfile, $consumer -> path -> {datatracks} -> ("plotConf")) or die "$!\n";
+$consumer -> query([
+	"You can either continue for image generation or run circos yourself.",
+	"type 'exit' and enter to quit or press any key and enter to continue.."
+]);
+my $continue = consumeInput(
+	["circos", "run"], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> circos -> {run}
+	}
+);
 chomp $continue;
 if ($continue =~ /exit/) {
 	exit;
@@ -882,11 +1271,13 @@ if ($continue =~ /exit/) {
 close $plotfile or die "$!\n";
 close $templatefile or die "$!\n";
 if ($markup_choice =~ /yes/) {
-close $connectorfile or die "$!\n";
-close $connector_text_file or die "$!\n";
+	close $connectorfile or die "$!\n";
+	close $connector_text_file or die "$!\n";
 }
 close $highlightfile or die "$!\n";
-close $conservationfile or die "$!\n";
+if ($consumer -> {consFile}) { 
+	close $conservationfile or die "$!\n";
+}
 #close $iteratorfile or die "$!\n";
 close $snpfile or die "$!\n";
 close $tilefile or die "$!\n";
@@ -897,27 +1288,49 @@ close $karyotypefile or die "$!\n";
 close $cdnafile or die "$!\n";
 close $fastafile or die "$!\n";
 #close file handles
-print "Filehandles at datatracks folder are closed.\nYou can now change these folders before proceeding.\nPress enter to continue..\n";
-<STDIN>;
+
+$consumer -> query([
+	"Filehandles at datatracks folder are closed.",
+	"You can now change these folders before proceeding.",
+	"Press enter to continue.."
+]);
+
+consumeInput(
+	[], 
+	$configJSON,
+	{
+		"ask" => $consumer -> ask,
+		"callback" => $consumer -> circos -> {pass}
+	}
+);
 
 #Run circos
 print "Running circos..\n";
-my $circos = "C:/strawberry/circos-0.67-7/bin/circos";
-my $circos_results = system($^X, $circos, "-conf=$FindBin::Bin/../circos-p/templates/circos_template.conf", "-outputdir=$FindBin::Bin/../circos-p/Output");
+my $circos = $consumer -> path -> {circos} -> ();
+# "C:/strawberry/circos-0.67-7/bin/circos"
+my $circos_results = system(
+	$^X, 
+	$circos, 
+	"-conf=" . $consumer -> path -> {templates} -> ("circos_templateConf"),
+	"-outputdir=" . $consumer -> path -> {outputDir} -> ()
+);
 print "Your image is created..\n";
 #Run circos
 
 #Inject javascript
 print "Injecting Javascript..\n";
-copy("$PATH_domestic/circos-p/Output/circos.svg", "$PATH_domestic/circos-p/Output/circos.txt") or die "$!\n";
+copy(
+	$consumer -> path -> {outputWithExt} -> ("circos.svg"), 
+	$consumer -> path -> {outputWithExt} -> ("circos.txt")
+) or die "$!\n";
 my $javascriptfile;
 if ($markup_choice =~ /yes/i) {
-	open($javascriptfile, '<',"$PATH_domestic/circos-p/templates/javascript.txt") or die "Cannot read from javascript template!\n";
+	open($javascriptfile, '<', $consumer -> path -> {templates} -> ("javascript")) or die "Cannot read from javascript template!\n";
 } else {
-	open($javascriptfile, '<',"$PATH_domestic/circos-p/templates/javascript_noconnector.txt") or die "Cannot read from javascript template!\n";
+	open($javascriptfile, '<', $consumer -> path -> {templates} -> ("javascript_noconnector")) or die "Cannot read from javascript template!\n";
 }
-open(my $svgtextfile, '<',"$PATH_domestic/circos-p/Output/circos.txt") or die "Cannot read from vector file!\n";
-open(my $htmltextfile, '>',"$PATH_domestic/circos-p/Output/$protein_name.txt") or die "Cannot write to html text file!\n";
+open(my $svgtextfile, '<', $consumer -> path -> {outputWithExt} -> ("circos.txt")) or die "Cannot read from vector file!\n";
+open(my $htmltextfile, '>', $consumer -> path -> {outputWithExt} -> ("$protein_name.txt")) or die "Cannot write to html text file!\n";
 
 while (<$javascriptfile>) {
 	my $i = 0;
@@ -939,16 +1352,91 @@ while (<$javascriptfile>) {
 		}
 	}
 }
-open($htmltextfile, '<',"$PATH_domestic/circos-p/Output/$protein_name.txt") or die "Cannot read from html text!\n";
-copy ($htmltextfile, "$PATH_domestic/circos-p/Output/$protein_name.html") or die "$!\n";
+open($htmltextfile, '<', $consumer -> path -> {outputWithExt} -> ("$protein_name.txt")) or die "Cannot read from html text!\n";
+copy($htmltextfile, $consumer -> path -> {outputWithExt} -> ("$protein_name.html")) or die "$!\n";
 #Inject javascript
 
-print "Your file $protein_name.html is created under ../circos-p/Output folder..\n";
+print join(
+	"\n",
+	@{[
+		"Your file $protein_name.html is created under",
+		$consumer -> path -> {outputDir} -> (),
+		""
+	]}
+);
 
+$consumer -> set("onSuccess", 1);
+END {
+	if(!($consumer -> {onSuccess})){
+		warn join(
+			"\n",
+			@{[
+				"The script did not complete succesfully.",
+				"Some shutdown options like copy\\move will",
+				"not be executed",
+				""
+			]}
+		);
+	} else {
+		my $dtTrckCopy = consumeInput(
+			["datatracks","copy"], 
+			$consumer -> {json}
+		) || 0;
+		my $dtTrckCleanup = consumeInput(
+			["datatracks","cleanup"], 
+			$consumer -> {json}
+		) || 0;
+		my $dtTrckMove = consumeInput(
+			["datatracks","move"], 
+			$consumer -> {json}
+		) || 0;
+		if ($dtTrckCopy && $dtTrckMove ne $dtTrckCopy){
+			$consumer 
+			-> path
+			-> {copyFiles}
+			-> (
+				$consumer 
+				-> path 
+				-> {allDatatracks} 
+				-> (),
+				$consumer 
+				-> path 
+				-> {datatracksCustomDir}
+				-> ("copy")
+			);
+		}
+		if ($dtTrckMove) {
+			$consumer 
+			-> path
+			-> {moveFiles}
+			-> (
+				$consumer 
+				-> path 
+				-> {allDatatracks} 
+				-> (),
+				$consumer 
+				-> path 
+				-> {datatracksCustomDir}
+				-> ("move")
+			);
+		}
+		if ($dtTrckCleanup && !$dtTrckMove) {
+			$consumer 
+			-> path 
+			-> {cleanFiles} 
+			-> (
+				$consumer 
+				-> path 
+				-> {allDatatracks} 
+				-> ()
+			);
+		}
+	}
+}
 
 sub separator {
-my $ref = $_[0];
-my @array;
+	my $ref = $_[0];
+	my @array;
 	if ($separator =~ /^tab.*/) {
 		@array = split (/\t/, $ref);
 	} elsif ($separator =~ /^spac.*/) {
@@ -958,74 +1446,159 @@ my @array;
 	} elsif ($separator =~ /^white.*/) {
 		@array = split (/\s+/, $ref);
 	} else {
-		print "The separator of your choice was undefined. Please enter the character itself...\n";
-		my $undef_separator = <STDIN>;
+		$consumer -> query([
+			"The separator of your choice was undefined",
+			"Please enter the character itself..."
+		]);
+		my $undef_separator = consumeInput(
+			["variation", "separator"], 
+			$configJSON,
+			{
+				"ask" => $consumer -> ask,
+				"callback" => $consumer -> variation -> {callback}
+			}
+		);
 		chomp $undef_separator;
 		print "The character $undef_separator will be used as separator...\n";
 		@array = split ("$undef_separator", $ref);
 	}
-return @array;
+	return @array;
 }
 
 
 sub list_creation {
 	$domain_count++;
 	REDEFINE_1:
-	print "Please type the start of domain_$domain_count...[Hint: Enter integer and press enter]\n";
-	$_ = <STDIN>;
+	$consumer -> query("Please type the start of domain_$domain_count...[Hint: Enter integer and press enter]\n");
+	$_ = consumeInput(
+		["domains", 0, "start"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> domain -> {start}
+		}
+	);
 	chomp $_;
 	if (($_ !~ /^[1-9]{1}[0-9]*$/) || ($_ > scalar(@fasta_array))) {
-		print "Few simple rules for entering domains:\n1. Only numbers are allowed.\n2. Cannot be larger than your protein's aa length.\n3. No negative numbers.\n";
+		$consumer -> err([
+			"Few simple rules for entering domains:",
+			"1. Only numbers are allowed.",
+			"2. Cannot be larger than your protein's aa length.",
+			"3. No negative numbers."
+		]);
 		goto REDEFINE_1;
 	}
 	if (($#domains >= 1) && ($_ <= $domains[$#domains])){
-		print "1. You cannot enter overlaping regions.\n2. You cannot enter a value smaller than the end of previous domain.\nHint: If you have overlaping domains in your protein (A and B for instance),\nyou can simply enter the name for first domain A_and_B-part1 and the second B-part2.\nUse underscores instead of spaces, they will be replaced later on.\n";
+		$consumer -> err([
+			"1. You cannot enter overlaping regions.",
+			"2. You cannot enter a value smaller than the end of previous domain.",
+			"Hint: If you have overlaping domains in your protein (A and B for instance),",
+			"you can enter the name for first domain A_and_B-part1 and the second B-part2.",
+			"Use underscores instead of spaces, they will be replaced later on."
+		]);
 		goto REDEFINE_1;
 	}
 	my $i = $_;
 	push (@domains, $_);
 	LC_RETRY:
-	print "Please type the end of domain_$domain_count...[Hint: Enter integer and press enter]\n";
-	$_ =  <STDIN>;
+	$consumer -> query("Please type the end of domain_$domain_count...[Hint: Enter integer and press enter]\n");
+	$_ =  consumeInput(
+		["domains", 0, "end"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> domain -> {end}
+		}
+	);
 	chomp $_;
 	if (($_ !~ /^[1-9]{1}[0-9]*$/) || ($_ > scalar(@fasta_array))) {
-		print "Few simple rules for entering domains:\n1. Only numbers are allowed.\n2. Cannot be larger than your protein's aa length.\n3. No negative numbers.\n";
+		$consumer -> err([
+			"Few simple rules for entering domains:",
+			"1. Only numbers are allowed.",
+			"2. Cannot be larger than your protein's aa length.",
+			"3. No negative numbers."
+		]);
 		goto LC_RETRY;
 	}
 	if (($#domains >= 1) && ($_ <= $domains[$#domains])){
-		print "1. You cannot enter overlaping regions.\n2. You cannot enter a value smaller than the end of previous domain.\nHint: If you have overlaping domains in your protein (A and B for instance),\nyou can simply enter the name for first domain A_and_B-part1 and the second B-part2.\nUse underscores instead of spaces, they will be replaced later on.\n";
+		$consumer -> err([
+			"1. You cannot enter overlaping regions.",
+			"2. You cannot enter a value smaller than the end of previous domain.",
+			"Hint: If you have overlaping domains in your protein (A and B for instance),",
+			"you can simply enter the name for first domain A_and_B-part1 and the second B-part2.",
+			"Use underscores instead of spaces, they will be replaced later on."
+		]);
 		goto LC_RETRY;
 	}
 	my $j = $_;
 	if ($j <= $i) {
-		print "You cannot enter an equal or smaller value...please retry.\n";
+		$consumer -> err([
+			"You cannot enter an equal or smaller value...please retry."
+		]);
 		goto LC_RETRY;
 	}
 	push (@domains, $_);
 	my $property;
-	print "Would you like to assign a property to this domain?\nProperties are necessary to attain colors..[yes/no]\n";
-	$_ = <STDIN>;
+	$consumer -> query([
+		"Would you like to assign a property to this domain?",
+		"Properties are necessary to attain colors..[yes/no]"
+	]);
+	$_ = consumeInput(
+		["domains"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> domain -> {assign}
+		}
+	);
 	chomp $_;
 	if ($_ =~ /^y.*/) {
-		print "What would be the name of this property?[e.g X_domain, X-domain]\n";
+		$consumer -> query("What would be the name of this property?[e.g X_domain, X-domain]\n");
 		REDEFINE_2:
-		$_ = <STDIN>;
+		$_ = consumeInput(
+			["domains", 0, "name"], 
+			$configJSON,
+			{
+				"ask" => $consumer -> ask,
+				"callback" => $consumer -> domain -> {name}
+			}
+		);
 		chomp $_;
 		if ($_ =~ /\s+|\/+|\\+|[()]+|\[+|\]+/) {
-			print "Spaces,slashes or pharanthesis are not allowed. Use underscores for spaces instead. Please retry:\n";
+			$consumer -> err([
+				"Spaces,slashes or pharanthesis are not allowed.",
+				"Use underscores for spaces instead. Please retry:"
+			]);
 			goto REDEFINE_2;
 		}
 		$property = $_;
-		print "Please enter a color for this region that circos understands..[eg. vdblue, lmagenta, vvdbrown..]\nIf you see black instead in your output you probably entered an undefined color.\n";
-		$_ = <STDIN>;
+		$consumer -> query([
+			"Please enter a color for this region that circos understands..[eg. vdblue, lmagenta, vvdbrown..]",
+			"If you see black instead in your output you probably entered an undefined color."
+		]);
+		$_ = consumeInput(
+			["domains", 0, "color"], 
+			$configJSON,
+			{
+				"ask" => $consumer -> ask,
+				"callback" => $consumer -> domain -> {color}
+			}
+		);
 		chomp $_;
 		$domain_colors{$property} = $_;
 	} else {
 		$property = "n/a";
 	}
 	push (@domain_properties, $property);
-	print "Are there more domains in your protein?[yes/no]\n";
-	$_ =  <STDIN>;
+	$consumer -> query("Are there more domains in your protein?[yes/no]\n");
+	$_ =  consumeInput(
+		["domains"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> domain -> {nextDomain}
+		}
+	);
 	chomp $_;
 	until (($_ =~ /^n.*/) || ($_ !~ /^y.*/)) {
 		list_creation ($_);
@@ -1035,11 +1608,26 @@ sub list_creation {
 sub markup {
 	$markup_count++;
 	REDEFINE_MARKUP_1:
-	print "Please type the start of region_$markup_count...[Hint: Enter integer and press enter]\n";
-	$_ = <STDIN>;
+	$consumer -> query([
+		"Please type the start of region_$markup_count...",
+		"[Hint: Enter integer and press enter]"
+	]);
+	$_ = consumeInput(
+		["markups", 0, "start"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> markup -> {start}
+		}
+	);
 	chomp $_;
 	if (($_ !~ /^[1-9]{1}[0-9]*$/) || ($_ > scalar(@fasta_array))) {
-		print "Few simple rules for entering markups:\n1. Only numbers are allowed.\n2. Cannot be larger than your protein's aa length.\n3. No negative numbers.\n";
+		$consumer -> err([
+			"Few simple rules for entering markups:",
+			"1. Only numbers are allowed.",
+			"2. Cannot be larger than your protein's aa length.",
+			"3. No negative numbers."
+		]);
 		goto REDEFINE_MARKUP_1;
 	}
 	#I initally inserted here the below code. But I think it should be OK for markups to overlap.
@@ -1050,11 +1638,26 @@ sub markup {
 	my $i = $_;
 	push (@markup, $_);
 	MU_RETRY:
-	print "Please type the end of region_$markup_count...[Hint: Enter integer and press enter]\n";
-	$_ =  <STDIN>;
+	$consumer -> query([
+		"Please type the end of region_$markup_count...",
+		"[Hint: Enter integer and press enter]"
+	]);
+	$_ =  consumeInput(
+		["markups", 0, "end"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> markup -> {end}
+		}
+	);
 	chomp $_;
 	if (($_ !~ /^[1-9]{1}[0-9]*$/) || ($_ > scalar(@fasta_array))) {
-		print "Few simple rules for entering markups:\n1. Only numbers are allowed.\n2. Cannot be larger than your protein's aa length.\n3. No negative numbers.\n";
+		$consumer -> err([ 
+			"Few simple rules for entering markups:",
+			"1. Only numbers are allowed.",
+			"2. Cannot be larger than your protein's aa length.",
+			"3. No negative numbers." 
+		]);
 		goto MU_RETRY;
 	}
 	#I initally inserted here the below code. But I think it should be OK for markups to overlap.
@@ -1065,43 +1668,100 @@ sub markup {
 	my $j = $_;
 	#Initially I have included the below code, but I modified it to prohibit from only being smaller than the start...
 	if ($j < $i) {
-		print "You cannot enter a smaller value than the start..Please retry.\n";
+		$consumer -> err("You cannot enter a smaller value than the start..Please retry.\n");
 		goto MU_RETRY;
 	}
 	push (@markup, $_);
-	print "What is the name of this region?[e.g Interaction_with_target_X]\n";
+	$consumer -> query("What is the name of this region?[e.g Interaction_with_target_X]\n");
 	REDEFINE_MARKUP_2:
-	$_ = <STDIN>;
+	$_ = consumeInput(
+		["markups", 0, "name"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> markup -> {name}
+		}
+	);
 	chomp $_;
 	if ($_ =~ /\s+|\/+|\\+|[()]+|\[+|\]+/) {
-		print "Spaces,slashes or pharanthesis are not allowed. Use underscores for spaces instead. Please retry:\n";
+		$consumer -> err([
+			"Spaces,slashes or pharanthesis are not allowed.",
+			"Use underscores for spaces instead.",
+			$consumer -> {configDefined} ? "" : "Please retry:"
+		]);
 		goto REDEFINE_MARKUP_2;
 	}
 	push (@markup, $_);
 	my $property;
-	print "Would you like to assign a property to this region?\nProperties are necessary to attain colors..[yes/no]\n";
-	$_ = <STDIN>;
+	$consumer -> query([
+		"Would you like to assign a property to this region?",
+		"Properties are necessary to attain colors..[yes/no]"
+	]);
+	$_ = consumeInput(
+		["markups"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> markup -> {assign}
+		}
+	);
 	chomp $_;
 	if ($_ =~ /^y.*/) {
-		print "What would be the name of this property?[e.g Interaction_with_target_X]\n";
+		$consumer -> query([
+			"What would be the name of this property?",
+			"[e.g Interaction_with_target_X]"
+		]);
 		REDEFINE_MARKUP_3:
-		$_ = <STDIN>;
+		$_ = consumeInput(
+			["markups", 0, "prop"], 
+			$configJSON,
+			{
+				"ask" => $consumer -> ask,
+				"callback" => $consumer -> markup -> {prop}
+			}
+		);
 		chomp $_;
 		if ($_ =~ /\s+|\/+|\\+|[()]+|\[+|\]+/) {
-			print "Spaces,slashes or pharanthesis are not allowed. Use underscores for spaces instead. Please retry:\n";
+			$consumer -> err([
+				"Spaces,slashes or pharanthesis are not allowed.",
+				"Use underscores for spaces instead",
+				$consumer -> {configDefined} ? "" : "Please retry:"
+			]);
 			goto REDEFINE_MARKUP_3;
 		}
 		$property = $_;
-		print "Please enter a color for this markup that circos understands..[eg. vdblue, lmagenta, vvdbrown..]\nIf you see black instead in your output you probably entered an undefined color.\n";
-		$_ = <STDIN>;
+		$consumer -> query([
+			"Please enter a color for this markup",
+			"that circos understands..[eg. vdblue, lmagenta, vvdbrown..]",
+			"If you see black instead in your output,",
+			"you probably entered an undefined color."
+		]);
+		$_ = consumeInput(
+			["markups", 0, "color"], 
+			$configJSON,
+			{
+				"ask" => $consumer -> ask,
+				"callback" => $consumer -> markup -> {color}
+			}
+		);
 		chomp $_;
 		$markup_colors{$property} = $_;
 	} else {
 		$property = "n/a";
 	}
 	push (@markup, $property);
-	print "Are there more regions that you want to mark in your protein?[yes/no]\n";
-	$_ =  <STDIN>;
+	$consumer -> query([
+		"Are there more regions that you want",
+		"to mark in your protein?[yes/no]"
+	]);
+	$_ =  consumeInput(
+		["markups"], 
+		$configJSON,
+		{
+			"ask" => $consumer -> ask,
+			"callback" => $consumer -> markup -> {nextMarkup}
+		}
+	);
 	chomp $_;
 	until (($_ =~ /^n.*/) || ($_ !~ /^y.*/)) {
 		markup ($_);
@@ -1161,53 +1821,70 @@ sub prefixer {
 }
 
 sub take_min {
-my @min;
-my @test_set;
-@test_set = @_;
-my $i = 0;
-push (@min, $test_set[$i]);
-$i++;
-until ($i == scalar(@test_set)) {
-#below if statement makes sure that whathever thats pushed in the array is a number but not an empty space.
-	if ($test_set[$i] !~ /^\s*$/) {
-		if ($test_set[$i]<$min[0]) {
-			shift (@min);
-			push (@min, $test_set[$i]);
-		} else {
-		}
+	if (wantarray) {
+		die join(
+			"\n",
+			@{[
+				"take_min should not be expected",
+				"to return in list context"
+			]}
+		);
 	}
+	my @min;
+	my @test_set;
+	@test_set = @_;
+	if (!scalar(@test_set)){
+		return;
+	}
+	my $i = 0;
+	push (@min, $test_set[$i]);
 	$i++;
-}
-return $min[0];
-#Uncomment below to test your array
-#print "your min value for the test is $min[0]!\n";
+	until ($i == scalar(@test_set)) {
+		if ($test_set[$i] !~ /^\s*$/) {
+			if ($test_set[$i] < $min[0]) {
+				shift (@min);
+				push (@min, $test_set[$i]);
+			}
+		}
+		$i++;
+	}
+	return $min[0];
 }
 
 sub take_max {
-my @max;
-my @test_set;
-@test_set = @_;
-my $i = 0;
-push (@max, $test_set[$i]);
-$i++;
-until ($i == scalar(@test_set)) {
-	if ($test_set[$i] !~ /^\s*$/) {
-		if ($test_set[$i]>$max[0]){
-			shift (@max);
-			push (@max, $test_set[$i]);
-		} else {
-		}
+	if (wantarray) {
+		die join(
+			"\n",
+			@{[
+				"take_max should not be expected",
+				"to return in list context"
+			]}
+		);
 	}
+	my @max;
+	my @test_set;
+	@test_set = @_;
+	if (!scalar(@test_set)){
+		return;
+	}
+	my $i = 0;
+	push (@max, $test_set[$i]);
 	$i++;
-}
-return $max[0];
-#Uncomment below to test your array
-#print "your max value for the test is $max[0]!\n";
+	until ($i == scalar(@test_set)) {
+		if ($test_set[$i] !~ /^\s*$/) {
+			if ($test_set[$i] > $max[0]){
+				shift (@max);
+				push (@max, $test_set[$i]);
+			} 
+		}
+		$i++;
+	}
+	return $max[0];
 }
 
 sub getopt {
 #Use the getoptions module.
-GetOptions ("help=s" => \$help, "version=s" => \$version, "path=s" => \$PATH) or die ("Once you enter argument press a key and enter to make sure they are defined.\n[Ex: --help h --version v]\n");
+GetOptions ("help=s" => \$help, "version=s" => \$version, "path=s" => \$PATH, "config=s" => \$config) or die ("Once you enter argument press a key and enter to make sure they are defined.\n[Ex: --help h --version v]\n");
 }
 
 sub fetch_predictions {

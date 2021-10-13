@@ -1,8 +1,8 @@
 {
   "name": "ibowankenobi-i-pv",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "org_ipv": {
-    "version": "1.47"
+    "version": "2.0"
   },
   "description": "Interactive Protein Sequence VIsualization/Viewer - Interactive Circos",
   "main": "./i-pv/script/SNPtoAA.pl",
@@ -28,8 +28,10 @@
     "publishPatch": "npm run bumpPatch && npm run publishRest",
     "publishPatchNPM": "npm run bumpPatchNPM && npm run publishRest",
     "publishMinor": "npm run bumpMinor && npm run publishRest",
+    "publishFeature": "npm run bumpMinorNPM && npm run bumpMajorIPV && npm run publishRest",
     "publishMajor": "npm run bumpMajor && npm run publishRest",
-    "syncMirror": "cross-env-shell node ./util/syncMirror.js"
+    "syncMirror": "cross-env-shell node ./util/syncMirror.js",
+    "test": "cross-env-shell node ./util/test/outputTest.js"
   },
   "keywords": [
     "interactive",
@@ -47,5 +49,8 @@
   "license": "MIT",
   "devDependencies": {
     "cross-env": "^7.0.3"
+  },
+  "dependencies": {
+    "rafx": "^0.0.20"
   }
 }

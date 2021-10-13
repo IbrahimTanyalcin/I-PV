@@ -1,0 +1,63 @@
+{
+	"path": "",
+	"autoflush": 1,
+	"proteinFileName": "testInput/fasta.txt",
+	"mrnaFileName": "testInput\\mRNA.txt",
+	"conservation":{
+		"consFileName": "testInput\\conservation.txt",
+		"barHeight": 0,
+		"defVal": "Hmm"
+	},
+	"name": "NFKB",
+	"domains": [
+		{
+			"start": 50,
+			"end": 126,
+			"name": "domain_X",
+			"color": "vdred"
+		},
+		{
+			"start": 350,
+			"end": 460,
+			"name": "domain_Y",
+			"color": "lblue"
+		}
+	],
+	"variation":{
+		"format": "ensembl",
+		"fileName": "testInput\\mart_export.txt",
+		"skipHeader": 1,
+		"separator": "tab",
+		"colBaseChange": 4,
+		"colSubsType": 4,
+		"colSubsCoords": 8,
+		"colValStat": 4,
+		"colBaseChangeStrand": 3,
+		"colGeneStrand": "+",
+		"transcriptID": "ENST00000505458",
+		"colTranscriptID": 6,
+		"colPolyphen2": 10,
+		"colSift2": 11,
+		"maf": 5
+	},
+	"markups": [
+		{
+			"start": 60,
+			"end": 125,
+			"name": "some_region",
+			"prop": "prop_x",
+			"color": "magenta"
+		}
+	],
+	"circos": {
+		"run": 1,
+		"path": "",
+		"output": "./testOutput/output",
+		"mkdir": 1
+	},
+	"datatracks": {
+		"cleanup": 1,
+		"mkdir": 1,
+		"move": "../Output/testOutput/datatracks"
+	}
+}

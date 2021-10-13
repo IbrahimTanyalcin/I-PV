@@ -13,6 +13,9 @@
 		pckjson.org_ipv.version = ipvVersion.toString()
 		.replace(/^\s*[0-9]+(?=\.)/gi,function(m,o,s){
 			return +m + 1;
+		}).replace(/(?<=\.)[0-9]+\s*$/gi,function(m,o,s){
+			//return "0".repeat(m.length);
+			return 0;
 		});
 	} else {
 		pckjson.org_ipv.version = ipvVersion.toString()
