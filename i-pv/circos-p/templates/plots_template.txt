@@ -2,7 +2,7 @@
 <plot>
 
 type  = highlight
-file  = ..\datatracks\highlights.txt
+file  = ../datatracks/highlights.txt
 r0    = 1r
 r1    = 1.1r
 color = black
@@ -43,7 +43,7 @@ flow = continue
 <plot>
 
 type = text
-file = ..\datatracks\protein_sequence.txt
+file = ../datatracks/protein_sequence.txt
 r0 = 0.95r
 r1 = 1.0r
 overflow = yes
@@ -115,7 +115,7 @@ flow = continue
 
 <plot>
 type             = scatter
-file             = ..\datatracks\scatter.txt
+file             = ../datatracks/scatter.txt
 fill_color       = dorange
 stroke_color     = vdorange
 stroke_thickness = 0
@@ -221,7 +221,7 @@ flow = continue
 <plot>
 show = no
 type  = histogram
-file  = ..\datatracks\modict_plot.txt
+file  = ../datatracks/modict_plot.txt
 r0    = 0.77r
 r1    = 0.87r
 orientation = out
@@ -290,7 +290,7 @@ flow = continue
 <plot>
 
 type = text
-file = ..\datatracks\text_plot_missense.txt
+file = ../datatracks/text_plot_missense.txt
 r0 = 1.09r
 r1 = 1.4r
 #overflow = yes
@@ -347,7 +347,7 @@ flow = continue
 <plot>
 #markup_choice1
 type = connector
-file = ..\datatracks\connector.txt
+file = ../datatracks/connector.txt
 r0   = 0.76r
 r1   = 0.80r
 connector_dims = 0,0.5,0.8,0.3,0
@@ -366,7 +366,7 @@ z         = 6
 #markup_choice2
 overflow = yes
 type = text
-file = ..\datatracks\connector_text.txt
+file = ../datatracks/connector_text.txt
 r0 = 0.72r
 r1 = 0.92r
 show_links = no
@@ -408,7 +408,7 @@ flow = continue
 <plot>
 
 type             = tile
-file             = ..\datatracks\tile_plot.txt
+file             = ../datatracks/tile_plot.txt
 color            = black
 layers           = 20
 #tile_thickness

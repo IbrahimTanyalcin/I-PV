@@ -2,6 +2,7 @@
 package ipv_modules::config;
 use strict;
 use warnings;
+use utf8;
 use Data::Dumper qw(Dumper);
 use File::Basename qw(basename dirname);
 use File::Spec qw(catfile file_name_is_absolute catdir);
@@ -13,6 +14,7 @@ use List::Util qw(max);
 use Cwd qw(abs_path);
 use lib dirname(abs_path $0);
 use ipv_modules::consumeInput qw(consumeInput);
+use ipv_modules::char;
 
 our $VERSION = 0.01;
 
@@ -56,6 +58,11 @@ sub new {
 		-> set("defPaths", { #default paths or path definitions
 			defGen => sub {
 				my $type = $_[0];
+				$self 
+					-> {cache} 
+					-> {transliterate} 
+					-> {bSlash}
+					-> (\$type);
 				return File::Spec -> catfile(
 					$self -> {scriptPath},
 					$self -> {relPath},
@@ -65,6 +72,11 @@ sub new {
 			},
 			defTemp => sub {
 				my $type = $_[0];
+				$self 
+					-> {cache} 
+					-> {transliterate} 
+					-> {bSlash}
+					-> (\$type);
 				return File::Spec -> catfile(
 					$self -> {scriptPath},
 					$self -> {relPath},
@@ -86,6 +98,9 @@ sub new {
 					"/circos-p/templates/circos_template.conf"
 				);
 			}
+		})
+		-> set("cache", {
+			transliterate => $self -> transliterate
 		});
 	return $self;
 } 
@@ -124,6 +139,11 @@ sub path {
 		},
 		setRelPath => sub {
 			my $relPath = $_[0];
+			$self 
+				-> {cache} 
+				-> {transliterate} 
+				-> {bSlash}
+				-> (\$relPath);
 			if (!defined $relPath){
 				die "setRelPath expects a non-null argument.\n";
 			}
@@ -132,6 +152,11 @@ sub path {
 		input => sub {
 			my ($input, $type) = @_;
 			$type = $type || "input";
+			$self 
+				-> {cache} 
+				-> {transliterate} 
+				-> {bSlash}
+				-> (\$input);
 			if($self -> {absPath}) {
 				$input = File::Spec -> catfile(
 					dirname($input), 
@@ -194,6 +219,11 @@ sub path {
 					$self -> {json}
 				);
 				if ($outDir) {
+					$self 
+						-> {cache} 
+						-> {transliterate} 
+						-> {bSlash}
+						-> (\$outDir);
 					if ($self -> {absPath}){
 						if (!(File::Spec -> file_name_is_absolute($outDir))) {
 							$self -> fatal([
@@ -241,6 +271,11 @@ sub path {
 					say Dumper $mkPathErr;
 				}
 			}
+			$self 
+				-> {cache} 
+				-> {transliterate} 
+				-> {bSlash}
+				-> (\$type);
 			return File::Spec -> catfile(
 				$outDir,
 				$type
@@ -268,6 +303,11 @@ sub path {
 					$self -> {json}
 				);
 				if ($outDir) {
+					$self 
+						-> {cache} 
+						-> {transliterate} 
+						-> {bSlash}
+						-> (\$outDir);
 					if ($self -> {absPath}){
 						if (!(File::Spec -> file_name_is_absolute($outDir))) {
 							$self -> fatal([
@@ -339,6 +379,7 @@ sub path {
 				}
 			}
 		},
+		#does NOT auto tr backslashes
 		copyFiles => sub {
 			my ($files, $directory) = @_;
 			foreach my $file (@{$files}) {
@@ -362,6 +403,7 @@ sub path {
 				}
 			}
 		},
+		#does NOT auto tr backslashes
 		moveFiles => sub {
 			my ($files, $directory) = @_;
 			foreach my $file (@{$files}) {
@@ -393,6 +435,11 @@ sub path {
 					$self -> {json}
 				);
 				if ($circos) {
+					$self 
+						-> {cache} 
+						-> {transliterate} 
+						-> {bSlash}
+						-> (\$circos);
 					if ($self -> {absPath}){
 						if (!(File::Spec -> file_name_is_absolute($circos))) {
 							$self -> fatal([
@@ -404,7 +451,7 @@ sub path {
 						$circos = File::Spec -> catfile(
 							$self -> {scriptPath},
 							$self -> {relPath},
-							"/../circos/bin/",
+							"../circos/bin/",
 							$circos
 						);
 					}
@@ -413,7 +460,7 @@ sub path {
 			$circos = $circos || File::Spec -> catfile(
 				$self -> {scriptPath},
 				$self -> {relPath},
-				"/../circos/bin/circos"
+				"../circos/bin/circos"
 			);
 			return $circos;
 		}
@@ -618,7 +665,7 @@ sub protein {
 	my $self = $_[0];
 	return {
 		name => sub {
-			my ($retVal, $json) = @_;
+			my ($retVal, $json, $fields) = @_;
 			if (
 				$self -> {configDefined} 
 				&& !defined $retVal
@@ -628,6 +675,17 @@ sub protein {
 					will be shown at the bottom of your html output
 				}) =~ s/^\t+//gm;
 				die $err;
+			}
+			if ($retVal =~ ipv_modules::char::oneof([
+				qw(\ / . ? * ¥)
+			])) {
+				#https://docs.microsoft.com/en-us/windows/win32/intl/character-sets-used-in-file-names
+				$self -> fatal([
+					"field " . $self -> stringifyFields($fields),
+					"requires legit filenames that lack",
+					"backslash, forward slash, dot, question",
+					"mark, star and Yen symbols."
+				]);
 			}
 			return $retVal;
 		}
@@ -927,6 +985,34 @@ sub trim {
 	my ($self, $str) = @_;
 	$str =~ s/^\s+|\s+$//g;
 	return $str;
+}
+
+sub transliterate {
+	my $self = $_[0];
+	return {
+		lfCr => sub {
+			my $strRef = $_[0];
+			if (uc(ref $strRef) ne "SCALAR"){
+				$self -> fatal([
+					"consumer -> transliterate -> lfCr",
+					"expects a reference to a scalar",
+				]);
+			}
+			${$strRef} =~ tr/\N{U+0D}\N{U+0A}//d;
+			return $strRef;
+		},
+		bSlash => sub {
+			my $strRef = $_[0];
+			if (uc(ref $strRef) ne "SCALAR"){
+				$self -> fatal([
+					"consumer -> transliterate -> bSlash",
+					"expects a reference to a scalar",
+				]);
+			}
+			${$strRef} =~ tr/\N{U+5C}/\N{U+2F}/;
+			return $strRef;
+		}
+	}
 }
 
 sub autoflush {

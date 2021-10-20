@@ -158,8 +158,13 @@ or $consumer -> {configDefined}
 	: goto REENTER_FASTA;
 my @fasta_array = ();
 while (<$fastafile>) {
-	if ($_ =~ /.*[>]+.*/ || $_ =~ /.*[|.;]+.*/ || $_ !~ /^[ARNDBCQEZGHILKMFPSTWYVarndbcqezghilkmfpstwyv]+\s*$/) {
-		} else {
+	$consumer -> {cache} -> {transliterate} -> {lfCr} -> (\$_);
+	if (
+		$_ =~ /.*[>]+.*/ 
+		|| $_ =~ /.*[|.;]+.*/ 
+		|| $_ !~ /^[ARNDBCQEZGHILKMFPSTWYVarndbcqezghilkmfpstwyv]+\s*$/
+	) {
+	} else {
 		chomp $_;
 		my @splitted = split ("",$_);
 		push  (@fasta_array, @splitted);
@@ -194,7 +199,12 @@ or $consumer -> {configDefined}
 	: goto REENTER_CDNA;
 my @cdna_array = ();
 while (<$cdnafile>) {
-	if ($_ =~ /.*[>]+.*/ || $_ =~ /.*[|.;]+.*/ || $_ !~ /^(\s*[ATCGatcg]+\s*)+$/) {
+	$consumer -> {cache} -> {transliterate} -> {lfCr} -> (\$_);
+	if (
+		$_ =~ /.*[>]+.*/ 
+		|| $_ =~ /.*[|.;]+.*/ 
+		|| $_ !~ /^(\s*[ATCGatcg]+\s*)+$/
+	) {
 	} else {
 		chomp $_;
 		my @splitted = split ("",$_);
@@ -583,6 +593,7 @@ my $missense_counter = 0;
 my %reversebase = ("A" => "T", "T" => "A", "C" => "G", "G" => "C");
 open(my $snpfile_missense_textplot, '>', $consumer -> path -> {datatracks} -> ("text_plot_missense")) or die "Cannot open the text plot file!\n";
 while (<$snpfile>) {
+	$consumer -> {cache} -> {transliterate} -> {lfCr} -> (\$_);
 	chomp;
 	my @each_line =  separator ($_);
 	my @snp_data = ();
@@ -801,6 +812,7 @@ open($snpfile, '<', $consumer -> path -> {input} -> ($snp_name, "variation (SNPs
 open(my $tilefile, '>', $consumer -> path -> {datatracks} -> ("tile_plot")) or die "Cannot open the tile plot file!\n";
 my $tile_ID = 0;
 while (<$snpfile>) {
+	$consumer -> {cache} -> {transliterate} -> {lfCr} -> (\$_);
 	chomp;
 	my @each_line =  separator ($_);
 	my @snp_data = ();
@@ -1009,6 +1021,7 @@ if ($modictplot_answer !~ /^y.*/) {
 	goto SKIP_MODICT_3;
 }
 while (<$iteratorfile>) {
+	$consumer -> {cache} -> {transliterate} -> {lfCr} -> (\$_);
 	chomp $_;
 	push (@iterator_array,$_);
 }
@@ -1016,6 +1029,7 @@ SKIP_MODICT_3:
 
 $consumer -> {consFile} && do { 
 	while (<$conservationfile>) {
+		$consumer -> {cache} -> {transliterate} -> {lfCr} -> (\$_);
 		chomp $_;
 		push (@conservation_array,$_);
 	}
