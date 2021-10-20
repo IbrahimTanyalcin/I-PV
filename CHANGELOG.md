@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## NPM_0.1.2 / IPV_2.2
+- Update `.gitattributes` to prevent auto EOL conversion for files under `templates/`
+
 ## NPM_0.1.1 / IPV_2.1
 - Automatically transliterates backslashes to forward slashes in the `config.json`.
 - Prohibits use of [`\ / . ? * ¥`](https://docs.microsoft.com/en-us/windows/win32/intl/character-sets-used-in-file-names) characters in `name` field of `config.json` and generated file names.
