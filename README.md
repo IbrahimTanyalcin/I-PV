@@ -2,17 +2,15 @@
 
 [![NPM](https://nodei.co/npm/ibowankenobi-i-pv.png)](https://nodei.co/npm/ibowankenobi-i-pv/)
 
+[![I-PV Website](https://img.shields.io/badge/ipv-website-orange)](http://www.i-pv.org/)
+[![Readme](https://img.shields.io/badge/ipv-readme-azure
+)](https://github.com/IbrahimTanyalcin/I-PV/tree/master/i-pv)
+
 ## Read the article
 
 [![link](https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/i-pv_article.jpeg?raw=true)](https://academic.oup.com/bioinformatics/article/32/3/447/1743584)
 
 ## Interactive Protein Sequence VIsualization/Viewer
-
-This is the extracted I-PV folder which can also be downloaded from [I-PV official website](http://i-pv.org/ipv_minimal.html)
-
-- Refer to the `./i-pv/ReadMe.md` for more detailed explanation on usage.
-
-- You can visit [i-pv.org](http://i-pv.org/ipv_rec.html) or [here](./ipv/).
 
 I-PV aims to unify protein features in a single interactive figure. It is easy to generate and
 highly customizable. Data is checked and then plotted. When you publish figures with I-PV, I recommed you also
@@ -25,6 +23,10 @@ Below are some [sample outputs](http://i-pv.org/EGFR.html).
 ![alt tag](https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/sample.png?raw=true)
 
 ![alt tag 2](https://github.com/IbrahimTanyalcin/I-PV/blob/master/img/sample2.png?raw=true)
+
+## Readme
+[![Readme](https://img.shields.io/badge/ipv-readme-azure
+)](https://github.com/IbrahimTanyalcin/I-PV/tree/master/i-pv)
 
 ## Publishing
 
