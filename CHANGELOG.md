@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## NPM_0.1.4 / IPV_2.4
+- Updated mirroring function `syncMirror`.
+- Added `azure.yaml`.
+
+## NPM_0.1.3 / IPV_2.3
+- Updates to readme and documentation of config options.
+- Minor bug fixes.
+
 ## NPM_0.1.2 / IPV_2.2
 - Update `.gitattributes` to prevent auto EOL conversion for files under `templates/`
 

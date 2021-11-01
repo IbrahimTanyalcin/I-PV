@@ -1,0 +1,49 @@
+## This yaml file keeps a clone 
+## @azure-devops up to date
+## discards everything NOT in the 
+## public Github repo
+name: keepCloneUpToDate
+## Below is not necessary, for it to work,
+## an endpoint is needed which may or may not
+## already be there
+## resources:
+#  repositories:
+#  - repository: github-ipv
+#    type: github
+#    name: IbrahimTanyalcin/I-PV
+#    endpoint: MyGitHubServiceConnection
+variables:
+  REMOTE_ADDR: 'https://github.com/IbrahimTanyalcin/I-PV.git'
+schedules:
+- cron: "30 * * * *" #there is 1000/pipeline hardcap, careful
+  displayName: refreshEvery30Min
+  branches:
+    include:
+    - master
+  always: true
+stages:
+  - stage: running_git_commands
+    displayName: running_git_commands
+    jobs:
+      - job: initiate
+        displayName: initiate
+        continueOnError: false
+        steps:
+        - checkout: self
+          clean: true
+          persistCredentials: true
+          displayName: run_commands
+        - bash: | 
+            git checkout master
+            git remote add ipvGithub $(REMOTE_ADDR)
+            git fetch ipvGithub master
+            if [ $(git rev-parse @) != $(git rev-parse ipvGithub/master) ]
+            then
+              echo "commits NOT equal, rebasing"
+              git reset --hard ipvGithub/master
+              git pull --rebase ipvGithub master
+              git push --force origin
+            else 
+              echo "commits equal, no need to pull"
+            fi
+      

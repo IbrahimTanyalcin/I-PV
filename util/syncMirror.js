@@ -7,7 +7,9 @@
 		- cd to the cloned folder
 		- git remote set-url --push origin https://new-mirror-repo
 	*/
-	var {exec} = require('child_process'),
+	var fs = require('fs'),
+		path = require('path'),
+		{exec} = require('child_process'),
 		NPM_VERSION = process.env.npm_package_version,
 		execute = function (str){
 			const retVal = new Promise((res, rej) => {
@@ -39,10 +41,60 @@
 				});
 			});
 			return retVal;
+		},
+		findDir = function(
+			start,
+			search,
+			opts
+		) {
+			opts = opts || {
+				fsConstants: fs.constants.F_OK | fs.constants.R_OK,
+				depth: 1
+			};
+			return new Promise((res, rej) => {
+				for (var i = 0, j = start; i < opts.depth; ++i){
+					fs.access(
+						path.join(j, search),
+						opts.fsConstants,
+						((i,j) => (err) => {
+								if(!err){
+									res(j);
+								} else if (i === opts.depth - 1 ) {
+									rej(opts.err || err);
+								}
+							}
+						)(i,j)
+					);
+					j = path.join(j, "..");
+				}
+			});
 		};
-	execute('git fetch -p origin')
+	findDir(__dirname, "/node_modules", {depth: 5})
+	.then(rootFolder => {
+		try {
+			var mirrorConfig = require(path.join(rootFolder, "/mirror.conf.json"));
+		} catch (err) {
+			throw err;
+		}
+		return {rootFolder, mirrorConfig};
+	})
+	.then(({rootFolder, mirrorConfig}) => {
+		return findDir(rootFolder, mirrorConfig.path, {depth: 5})
+		.then(folder => path.join(folder, mirrorConfig.path));
+	})
+	.then(mirrorFolder => {
+		process.chdir(mirrorFolder);
+		return execute('git fetch -p origin');
+	})
 	.then(function(res){
 		return execute('git push --mirror');
 	})
-	.catch(function(reason){console.log('Promise thrown or rejected. Reason:\n' + reason)});
+	.catch(err => {
+		if (err instanceof Error) {
+			console.log(err.message);
+		} else {
+			console.log(err);
+		}
+	});
+	/*.catch(function(reason){console.log('Promise thrown or rejected. Reason:\n' + reason)});*/
 }();

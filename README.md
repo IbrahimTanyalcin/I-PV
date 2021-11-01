@@ -5,6 +5,9 @@
 [![I-PV Website](https://img.shields.io/badge/ipv-website-orange)](http://www.i-pv.org/)
 [![Readme](https://img.shields.io/badge/ipv-readme-azure
 )](https://github.com/IbrahimTanyalcin/I-PV/tree/master/i-pv)
+[![Changelog](https://img.shields.io/badge/ipv-changelog-azure
+)](https://github.com/IbrahimTanyalcin/I-PV/blob/master/CHANGELOG.md)
+
 
 ## Read the article
 
@@ -28,6 +31,14 @@ Below are some [sample outputs](http://i-pv.org/EGFR.html).
 [![Readme](https://img.shields.io/badge/ipv-readme-azure
 )](https://github.com/IbrahimTanyalcin/I-PV/tree/master/i-pv)
 
+## Changelog
+[![Changelog](https://img.shields.io/badge/ipv-changelog-azure
+)](https://github.com/IbrahimTanyalcin/I-PV/blob/master/CHANGELOG.md)
+
+## Todo
+[![Changelog](https://img.shields.io/badge/ipv-todo-azure
+)](https://github.com/IbrahimTanyalcin/I-PV/blob/master/TODO.md)
+
 ## Publishing
 
 - Run one of the publish scripts within `package.json`:
@@ -39,3 +50,8 @@ npm run publishPatchNPM
 - If you change peripheral files only, increment `npm` version. 
 - If you change `SNPtoAA.pl`, increment both `npm` version and `org_ipv` version.
 - Choose the right publish script based on above.
+
+## Mirrorring
+
+- Publish scripts automatically run `syncMirror`. For it to work, you must have `mirror.conf.json` that has `path` key, which points to the folder of the mirror. Both root folder and mirror folders are recursively searched with a depth of `5`.
+- `azure.yaml` syncs a private azure repository. You can use it for other projects by changing the `REMOTE_ADDR`variable.

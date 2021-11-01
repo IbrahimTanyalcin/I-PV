@@ -1,8 +1,8 @@
 {
   "name": "ibowankenobi-i-pv",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "org_ipv": {
-    "version": "2.3"
+    "version": "2.4"
   },
   "description": "Interactive Protein Sequence VIsualization/Viewer - Interactive Circos",
   "main": "./i-pv/script/SNPtoAA.pl",
@@ -24,7 +24,7 @@
     "gitPush": "git push",
     "gitPushTags": "git push --tags --force",
     "setGit": "npm run gitAddAll && npm run gitCommit && npm run gitTag && npm run gitPush && npm run gitPushTags",
-    "publishRest": "npm run setGit && npm publish",
+    "publishRest": "npm run setGit && npm publish && npm run syncMirror",
     "publishPatch": "npm run bumpPatch && npm run publishRest",
     "publishPatchNPM": "npm run bumpPatchNPM && npm run publishRest",
     "publishMinor": "npm run bumpMinor && npm run publishRest",
