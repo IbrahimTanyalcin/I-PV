@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## NPM_0.1.6
+- Changed `syncMirror` to update tags.
+
 ## NPM_0.1.5
 - Changed `syncMirror` to ignore `stderr` when process exits with 0. ([See](https://stackoverflow.com/questions/57016157/stop-git-from-writing-non-errors-to-stderr))
 

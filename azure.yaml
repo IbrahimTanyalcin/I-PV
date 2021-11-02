@@ -43,6 +43,7 @@ stages:
               git reset --hard ipvGithub/master
               git pull --rebase ipvGithub master
               git push --force origin
+              git push --tags --force origin
             else 
               echo "commits equal, no need to pull"
             fi
