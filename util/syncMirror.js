@@ -28,6 +28,15 @@
 							console.log('pushed to repo successfully\n');
 							res(0);
 							return;
+						} else if(!err || !err.code){
+							//Git writes all non-err warnings
+							//to stderr for whatever reason
+							//https://stackoverflow.com/questions/57016157/stop-git-from-writing-non-errors-to-stderr
+							res(
+								`git issued stderr but exited with 0:
+								${stderr}`
+							);
+							return;
 						}
 						rej(`stderr: ${stderr}`);
 						return;
