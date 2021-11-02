@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## NPM_0.1.6
+## NPM_0.1.6 - NPM_0.1.7
 - Changed `syncMirror` to update tags.
 
 ## NPM_0.1.5
