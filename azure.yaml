@@ -37,7 +37,7 @@ stages:
             git checkout master
             git remote add ipvGithub $(REMOTE_ADDR)
             git fetch ipvGithub master
-            git fetch --tags ipvGithub master
+            git fetch --tags -f ipvGithub master
             if [ $(git rev-parse @) != $(git rev-parse ipvGithub/master) ]
             then
               echo "commits NOT equal, rebasing"
