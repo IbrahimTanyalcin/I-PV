@@ -67,12 +67,12 @@
 		});
 	}).then(binaries => {
 		try {
-			/*
+			
 			log(
 				"Binaries are", 
 				JSON.stringify(binaries,null,"\t")
 			);
-			*/
+			
 			if(info.nodaemon){
 				execute(
 					/*

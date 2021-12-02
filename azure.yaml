@@ -14,6 +14,7 @@ name: keepCloneUpToDate
 #    endpoint: MyGitHubServiceConnection
 variables:
   REMOTE_ADDR: 'https://github.com/IbrahimTanyalcin/I-PV.git'
+  BRANCH_NAME: 'public'
 schedules:
 - cron: "30 * * * *" #there is 1000/pipeline hardcap, careful
   displayName: refreshEvery30Min
@@ -34,7 +35,7 @@ stages:
           persistCredentials: true
           displayName: run_commands
         - bash: | 
-            git checkout master
+            git checkout $(BRANCH_NAME)
             git remote add ipvGithub $(REMOTE_ADDR)
             git fetch ipvGithub master
             git fetch --tags -f ipvGithub +master
@@ -43,8 +44,8 @@ stages:
               echo "commits NOT equal, rebasing"
               git reset --hard ipvGithub/master
               git pull --rebase ipvGithub master
-              git push --force origin
-              git push --tags --force origin
+              git push --force origin $(BRANCH_NAME):$(BRANCH_NAME)
+              git push --tags --force origin $(BRANCH_NAME):$(BRANCH_NAME)
             else 
               echo "commits equal, no need to pull"
             fi

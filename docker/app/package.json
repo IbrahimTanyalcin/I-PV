@@ -1,6 +1,6 @@
 {
   "name": "docker-for-i-pv",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "a simple docker container for running i-pv",
   "main": "main.js",
   "scripts": {

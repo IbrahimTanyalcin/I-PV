@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## NPM_0.1.8 - NPM_0.1.10
+- Various bug fixes
+- Added $(BRANCH_NAME) variable to azure.yaml
+- Binaries are logged on when docker is started
+
 ## NPM_0.1.6 - NPM_0.1.7
 - Changed `syncMirror` to update tags.
 
