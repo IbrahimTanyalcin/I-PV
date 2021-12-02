@@ -19,7 +19,7 @@ schedules:
   displayName: refreshEvery30Min
   branches:
     exclude:
-    - '*'
+    - master
     include:
     - public
   always: true
