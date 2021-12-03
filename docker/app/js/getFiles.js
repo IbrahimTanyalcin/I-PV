@@ -39,7 +39,7 @@ function process(dir, depth, relativeTo, result, callsRemaining, resolver, rejec
 			return;
 		}
 		files.forEach((dirent,i) => {
-			if(dirent.isFile()){
+			if(dirent.isFile() || dirent.isSymbolicLink()){
 				result.push(path.relative(relativeTo, path.resolve(dir, dirent.name)));
 			} else if (dirent.isDirectory() && depth) {
 				callsRemaining.value++;

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## NPM_0.1.12 - NPM_0.1.16
+- Added $(BRANCH_NAME) variable to azure.yaml
+- Modified `docker/js/getFiles.js` to include node directory entry objects (`dirent`) that either pass `dirent.isFile()` or `dirent.isSymbolicLink()` to correctly list available binaries.
+
 ## NPM_0.1.8 - NPM_0.1.11
 - Various bug fixes
 - ~~Added $(BRANCH_NAME) variable to azure.yaml~~
