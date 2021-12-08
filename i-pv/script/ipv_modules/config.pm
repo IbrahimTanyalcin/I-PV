@@ -7,7 +7,7 @@ use Data::Dumper qw(Dumper);
 use File::Basename qw(basename dirname);
 use File::Spec qw(catfile file_name_is_absolute catdir);
 use File::Path qw(make_path);
-use File::Copy qw(copy move);
+use File::Copy qw(copy move cp);
 use feature qw(say current_sub);
 use Exporter qw(import);
 use List::Util qw(max);
@@ -30,8 +30,11 @@ sub new {
 		-> set("defErrMsg", "A call to config.pm -> err has been made.\n")
 		-> set("defFatalMsg", "A call to config.pm -> fatal error has occured.\n")
 		-> set("defQueMsg", "A call to config.pm -> query has been made.\n")
-		-> set("sMarker", ">" x 40)
-		-> set("eMarker", "<" x 40)
+		-> set("defInfoMsg", "A call to config.pm -> info has been made.\n")
+		-> set("defRawMsg", "A call to config.pm -> rawMsg has been made.\n")
+		-> set("sMarker", "_" x 40)
+		-> set("eMarker", "_" x 40)
+		-> set("mMarker", "| ")
 		-> set(
 			"consDefVal", 
 			consumeInput(
@@ -54,7 +57,9 @@ sub new {
 		)
 		-> set("relPath","..")
 		-> set("absPath", 0)
+		-> set("configPath", 0)
 		-> set("scriptPath", undef) #will be set later within the main
+		-> set("configDir", undef) #similar to above
 		-> set("defPaths", { #default paths or path definitions
 			defGen => sub {
 				my $type = $_[0];
@@ -100,8 +105,14 @@ sub new {
 			}
 		})
 		-> set("cache", {
-			transliterate => $self -> transliterate
-		});
+			transliterate => $self -> transliterate,
+			path => $self -> path,
+			perms => $self -> perms,
+			variation => $self -> variation
+		})
+		-> set("circosOutputPerms", undef)
+		-> set("datatracksPerms", undef)
+		-> set("hasVariations", 0);
 	return $self;
 } 
 
@@ -118,7 +129,7 @@ sub ask {
 }
 
 sub path {
-	my $self = $_[0];
+	my ($self, $_outputs) = ($_[0], {});
 	return {
 		callback => sub {
 			my ($retVal, $json) = @_;
@@ -126,14 +137,18 @@ sub path {
 				$self -> {configDefined} 
 				&& !defined $retVal
 			){
-				(my $err = qq{
-					You have not specified path explicitly, 
-					if you want to use relative paths
-					specify an empty string as path key.
-				}) =~ s/^\t+//gm;
-				die $err;
+				$self -> fatal([
+					"You have not specified a path key explicitly.",
+					"If you want to use relative paths,",
+					"use an empty string ('') as path key.",
+					"If you want every path to be relative to the",
+					"config file, then use 'config' as path key.",
+					"If you want absolute paths, then use 'absolute'."
+				]);
 			} elsif ($retVal =~ /^\s*absolute\s*$/gi) {
 				$self -> set("absPath", 1);
+			} elsif ($retVal =~ /^\s*config\s*$/gi) {
+				$self -> set("configPath", 1);
 			}
 			return $retVal;
 		},
@@ -148,6 +163,24 @@ sub path {
 				die "setRelPath expects a non-null argument.\n";
 			}
 			return $self -> set("relPath", $relPath);
+		},
+		getBasePath => sub {
+			my $varPart = $_[0] || "";
+			$self -> {cache} -> {transliterate} -> {bSlash} -> (\$varPart);
+			if ($self -> {absPath}) {
+				$self -> fatal([
+					"calls to getBasePath only should be made when",
+					"path parameter is set to config or empty string",
+				]);
+			} elsif ($self -> {configPath}) {
+				return $self -> {configDir};
+			} else {
+				return File::Spec -> catdir(
+					$self -> {scriptPath},
+					$self -> {relPath},
+					$varPart
+				);
+			}
 		},
 		input => sub {
 			my ($input, $type) = @_;
@@ -171,9 +204,7 @@ sub path {
 				return $input;
 			}
 			return File::Spec -> catfile(
-				$self -> {scriptPath},
-				$self -> {relPath},
-				"/circos-p/Input/",
+				$self -> {cache} -> {path} -> {getBasePath} -> ("/circos-p/Input/"),
 				$input
 			);
 		},
@@ -233,9 +264,7 @@ sub path {
 						}
 					} else {
 						$outDir = File::Spec -> catdir(
-							$self -> {scriptPath},
-							$self -> {relPath},
-							"/circos-p/Output/",
+							$self -> {cache} -> {path} -> {getBasePath} -> ("/circos-p/Output/"),
 							$outDir
 						);
 					}
@@ -275,11 +304,18 @@ sub path {
 				-> {cache} 
 				-> {transliterate} 
 				-> {bSlash}
-				-> (\$type);
-			return File::Spec -> catfile(
+				-> (\$type);			
+			my $fileName = File::Spec -> catfile(
 				$outDir,
 				$type
 			);
+			return ${$_outputs}{$fileName} = $fileName;
+		},
+		allOutputs => sub {
+			#circos.png is created by circos by default
+			#it has be manually called to create entry
+			$self -> {cache} -> {path} -> {outputWithExt} -> ("circos.png");
+			return [grep {defined  ${$_outputs}{$_}} keys %{$_outputs}];
 		},
 		outputDir => sub {
 			my $mockFile = $self -> path -> {outputWithExt} -> ("mock.txt");
@@ -317,9 +353,7 @@ sub path {
 						}
 					} else {
 						$outDir = File::Spec -> catdir(
-							$self -> {scriptPath},
-							$self -> {relPath},
-							"/circos-p/datatracks/",
+							$self -> {cache} -> {path} -> {getBasePath} -> ("/circos-p/datatracks/"),
 							$outDir
 						);
 					}
@@ -403,6 +437,29 @@ sub path {
 				}
 			}
 		},
+		copyFilesCp => sub {
+			my ($files, $directory) = @_;
+			foreach my $file (@{$files}) {
+				if(-e $file) {
+					my $bName = basename($file);
+					my $nPath = File::Spec -> catfile(
+						$directory,
+						$bName
+					);
+					cp(
+						$file,
+						$nPath
+					) or warn join(
+						"\n",
+						@{[
+							"Could not cp $file:",
+							"$!",
+							""
+						]}
+					);
+				}
+			}
+		},
 		#does NOT auto tr backslashes
 		moveFiles => sub {
 			my ($files, $directory) = @_;
@@ -449,9 +506,7 @@ sub path {
 						}
 					} else {
 						$circos = File::Spec -> catfile(
-							$self -> {scriptPath},
-							$self -> {relPath},
-							"../circos/bin/",
+							$self -> {cache} -> {path} -> {getBasePath} -> ("../circos/bin/"),
 							$circos
 						);
 					}
@@ -693,7 +748,7 @@ sub protein {
 }
 
 sub variation {
-	my $self = $_[0];
+	my ($self, $colBaseChange) = ($_[0], undef);
 	my $valNumber = sub {
 		my ($retVal, $json, $fields) = @_;
 		my $err = $self -> stringifyFields($fields) 
@@ -720,72 +775,277 @@ sub variation {
 		}
 		return $retVal;
 	};
+	my $noUndefOrEmpty = sub {
+		my ($retVal, $json, $fields) = @_;
+		my $err = $self -> stringifyFields($fields) 
+			. "must not be undefined or an empty string";
+		my $isUndefOrEmpty = !defined $retVal || $retVal eq "";
+		if ($self -> {configDefined}){
+			if($isUndefOrEmpty){
+				$self -> err([$err]);
+			}
+			return $retVal;
+		}
+		my $testUndefOrEmpty = sub {
+			$self -> query($err . ", retry");
+			$retVal = <STDIN>;
+			chomp $retVal;
+			if (!defined $retVal || $retVal eq ""){
+				__SUB__ -> ();
+			} else {
+				$isUndefOrEmpty = 0;
+			}
+		};
+		if($isUndefOrEmpty){
+			$testUndefOrEmpty -> ();
+		}
+		return $retVal;
+	};
+	my $fallBackToThisIf = sub {
+		my ($fallbackVal, $conditionSub, $noFallbackVal) = @_;
+		if(ref($conditionSub) ne "CODE"){
+			$self -> fatal([
+				"2nd argument to fallBackToThisIf must be",
+				"a reference to a function."
+			]);
+		}
+		return sub {
+			my ($retVal, $json, $fields) = @_;
+			if(&{$conditionSub}(@_)) {
+				if(ref($fallbackVal) eq "CODE") {
+					return &{$fallbackVal}(@_);
+				}
+				return $fallbackVal;
+			}
+			if(defined $noFallbackVal){
+				if(ref($noFallbackVal) eq "CODE") {
+					return &{$noFallbackVal}(@_);
+				}
+				return $noFallbackVal;
+			}
+			return $retVal;
+		}
+	};
+	my $fallBackToColBaseChange = sub {
+		my ($retVal, $json, $fields) = @_;
+		if(!defined $retVal) {
+			if(!defined $colBaseChange){
+				$self -> fatal([
+					"'colBaseChange' must be defined",
+					"before a call for " . $self -> stringifyFields($fields)
+				]);
+			}
+			$self -> info([
+				$self -> stringifyFields($fields) . " was not specified,",
+				"fallingback to col#" . $colBaseChange
+			]);
+			return 1; #fallback
+		}
+		return 0; #keep original value
+	};
 	return {
 		callback => sub {
 			my ($retVal, $json, $fields) = @_;
 			my $err;
-			if (
-				$self -> {configDefined} 
-				&& !defined $retVal
-			){
-				$self -> err([
-					"Your json needs to have the field",
-					$self -> stringifyFields($fields)
-				]);
-			}
+			#if (
+			#	$self -> {configDefined} 
+			#	&& !defined $retVal
+			#){
+			#	$self -> err([
+			#		"Your json needs to have the field",
+			#		$self -> stringifyFields($fields)
+			#	]);
+			#}
 			return $retVal;
 		},
-		skipHeader => sub {
-			my ($retVal, $json, $fields) = @_;
-			my $err;
-			if ($self -> {configDefined}){
-				if (!defined $retVal){
-					$self -> err([
-						"Your json needs to have the field",
-						$self -> stringifyFields($fields)
-					]);
-				} elsif (+$retVal !~ /^\d+$/gi) {
-					$self -> err([
-						$self -> stringifyFields($fields),
-						"needs to be an integer"
-					]);
-				}
-				return "y";
-			}
-			return $retVal;
-		},
-		skipHeaderCount => $valNumber,
-		colBaseChange => $valNumber,
-		colSubsType => $valNumber,
-		colSubsCoords => $valNumber,
-		colValStat => $valNumber,
-		colBaseChangeStrand => $valNumber,
-		colGeneStrand => sub {
-			my ($retVal, $json, $fields) = @_;
-			my $err;
-			if ($self -> {configDefined}){
+		fileName => &{$fallBackToThisIf}(
+			"NA",
+			sub {
+				my ($retVal, $json, $fields) = @_;
 				if(!defined $retVal){
-					$self -> err([
-						"Your json needs to have the field",
-						$self -> stringifyFields($fields)
+					$self -> info([
+						$self -> stringifyFields($fields) . " was not specified,",
+						"assuming there are no variations to plot."
 					]);
-				} elsif ($retVal !~ /^plu|min|pos|neg|[+]|[-]|1|-1/) {
-					$self -> err([
-						$self -> stringifyFields($fields),
-						"has to be one of plu, min, pos, neg, +, -, 1, -1"
-					]);
+					return 1;
 				}
+				return 0;
 			}
-			return $retVal;
+		),
+		skipHeader => &{$fallBackToThisIf}(
+			"y",
+			sub {
+				my ($retVal, $json, $fields) = @_;
+				if(!defined $retVal){
+					$self -> info([
+						$self -> stringifyFields($fields) . " was not specified,",
+						"assuming a header exists."
+					]);
+					return 1;
+				}
+				return 0;
+			},
+			sub {
+				my ($retVal, $json, $fields) = @_;
+				my $err;
+				if ($self -> {configDefined}){
+					if (!defined $retVal){
+						$self -> err([
+							"Your json needs to have the field",
+							$self -> stringifyFields($fields)
+						]);
+					} elsif (+$retVal !~ /^\d+$/gi) {
+						$self -> err([
+							$self -> stringifyFields($fields),
+							"needs to be an integer"
+						]);
+					}
+					return "y";
+				}
+				return $retVal;
+			}
+		),
+		skipHeaderCount => &{$fallBackToThisIf}(
+			1,
+			sub {
+				my ($retVal, $json, $fields) = @_;
+				if(!defined $retVal){
+					$self -> info([
+						$self -> stringifyFields($fields) . " was not specified,",
+						"assuming the header is a single line."
+					]);
+					return 1;
+				}
+				return 0;
+			},
+			sub {return &{$valNumber}(@_);}
+		),
+		colBaseChange => sub {
+			return $colBaseChange = &{$valNumber}(@_);
 		},
+		colSubsType => &{$fallBackToThisIf}(
+			sub {return $colBaseChange;},
+			$fallBackToColBaseChange,
+			sub {return &{$valNumber}(@_);}
+		),
+		colSubsCoords => $valNumber,
+		colValStat => &{$fallBackToThisIf}(
+			sub {return $colBaseChange;},
+			$fallBackToColBaseChange,
+			sub {return &{$valNumber}(@_);}
+		),
+		colBaseChangeStrand => $valNumber,
+		colGeneStrand => &{$fallBackToThisIf}(
+			"+",
+			sub {
+				my ($retVal, $json, $fields) = @_;
+				if(!defined $retVal){
+					$self -> info([
+						$self -> stringifyFields($fields) . " was not specified,",
+						"assuming your gene is on the plus strand."
+					]);
+					return 1;
+				}
+				return 0;
+			},
+			sub {
+				my ($retVal, $json, $fields) = @_;
+				my $err;
+				if ($self -> {configDefined}){
+					if(!defined $retVal){
+						$self -> err([
+							"Your json needs to have the field",
+							$self -> stringifyFields($fields)
+						]);
+					} elsif ($retVal !~ /^plu|min|pos|neg|[+]|[-]|1|-1/) {
+						$self -> err([
+							$self -> stringifyFields($fields),
+							"has to be one of plu, min, pos, neg, +, -, 1, -1"
+						]);
+					}
+				}
+				return $retVal;
+			}
+		),
 		colTranscriptID => $valNumber,
-		colPolyphen2 => $valNumber,
-		colSift2 => $valNumber,
-		maf => $valNumber,
+		colPolyphen2 => &{$fallBackToThisIf}(
+			"NA",
+			sub {
+				my ($retVal, $json, $fields) = @_;
+				if(!defined $retVal){
+					$self -> info([
+						$self -> stringifyFields($fields) . " was not specified,",
+						"assuming you do not have polyphen2 scores."
+					]);
+					return 1;
+				}
+				return 0;
+			},
+			sub {return &{$valNumber}(@_);}
+		),
+		colSift2 => &{$fallBackToThisIf}(
+			"NA",
+			sub {
+				my ($retVal, $json, $fields) = @_;
+				if(!defined $retVal){
+					$self -> info([
+						$self -> stringifyFields($fields) . " was not specified,",
+						"assuming you do not have sift scores."
+					]);
+					return 1;
+				}
+				return 0;
+			},
+			sub {return &{$valNumber}(@_);}
+		),
+		maf => &{$fallBackToThisIf}(
+			"NA",
+			sub {
+				my ($retVal, $json, $fields) = @_;
+				if(!defined $retVal){
+					$self -> info([
+						$self -> stringifyFields($fields) . " was not specified,",
+						"assuming you do not have Minor Allele Frequencies."
+					]);
+					return 1;
+				}
+				return 0;
+			},
+			sub {return &{$valNumber}(@_);}
+		),
 		pass => sub {
 			my $retVal = shift @_;
 			return $retVal;
-		}
+		},
+		separator => &{$fallBackToThisIf}(
+			"tab",
+			sub {
+				my ($retVal, $json, $fields) = @_;
+				if(!defined $retVal){
+					$self -> info([
+						$self -> stringifyFields($fields) . " was not specified,",
+						"assuming the file is tab delimited."
+					]);
+					return 1;
+				}
+				return 0;
+			},
+			sub {return &{$noUndefOrEmpty}(@_);}
+		),
+		transcriptID => &{$fallBackToThisIf}(
+			"ProcessAll",
+			sub {
+				my ($retVal, $json, $fields) = @_;
+				if(!defined $retVal) {
+					$self -> info([
+						$self -> stringifyFields($fields) . " was not specified,",
+						"processing all transcripts."
+					]);
+					return 1; #fallback
+				}
+				return 0; #keep original value
+			}
+		)
 	};
 }
 
@@ -966,6 +1226,30 @@ sub fatal {
 	die ($msg . $self -> {eMarker} . "\n");
 }
 
+sub info {
+	my ($self, $msg) = @_;
+	$msg = $msg || $self -> {defInfoMsg};
+	if (ref ($msg) eq "ARRAY"){
+		$msg = join("\n" . $self -> {mMarker}, @{$msg}) . "\n";
+	}
+	say "Info:\n"
+	. $self -> {sMarker} . "\n"
+	. $self -> {mMarker}
+	. $msg 
+	. $self -> {eMarker} . "\n";
+}
+
+sub rawMsg {
+	my ($self, $msg) = @_;
+	$msg = $msg || $self -> {defRawMsg};
+	if (ref ($msg) eq "ARRAY"){
+		$msg = join("\n", @{$msg}) . "\n";
+	}
+	return $self -> {sMarker} . "\n"
+		. $msg 
+		. $self -> {eMarker} . "\n";
+}
+
 sub static {
 	return "ipv_modules::config";
 }
@@ -1030,6 +1314,78 @@ sub autoflush {
 			return $|;
 		}
 	};
+}
+
+sub perms {
+	my $self = $_[0];
+	my $valOctal = sub {
+		my ($retVal, $json, $fields) = @_;
+		$retVal = $self -> trim($retVal);
+		if ($retVal =~ m/^0[0-7]{3}$/gi){
+			return $retVal;
+		}
+		$self -> fatal([
+			"field " . $self -> stringifyFields($fields),
+			"needs to match ^0[0-7]{3}\$"
+		]);
+	};
+	return {
+		checkPerm => sub {
+			my ($retVal, $json, $fields) = @_;
+			if(!defined $retVal){
+				return;
+			}
+			return &{$valOctal}(@_);
+		},
+		setPerm => sub {
+			my ($files, $perm) = @_;
+			$files = [grep {-e $_} @{$files}];
+			if(!(@{$files})){
+				return;
+			}
+			if(!defined $perm){
+				$self -> info([
+					"Leaving default permissions for",
+					map {basename($_)} @{$files}
+				]);
+				return;
+			}
+			$self -> info([
+				"Setting permissions to " . oct($perm) . "(base10) for",
+				map {basename($_)} @{$files}
+			]);
+			my $nrSuccess = chmod oct($perm), @{$files};
+			if ($nrSuccess) {
+				say "$nrSuccess file(s) had their perms changed.\n";
+			} else {
+				say "chmod did not change any file perms.\n";
+			}
+		}
+	};
+}
+
+sub preflight {
+	my $self = $_[0];
+	$self -> set(
+		"datatracksPerms",
+		consumeInput(
+			["datatracks","perms"], 
+			$self -> {json},
+			{
+				"callback" => $self -> {cache} -> {perms} -> {checkPerm}
+			}
+		)
+	);
+	$self -> set (
+		"circosOutputPerms",
+		consumeInput(
+			["circos","perms"], 
+			$self -> {json},
+			{
+				"callback" => $self -> {cache} -> {perms} -> {checkPerm}
+			}
+		)
+	);
 }
 
 qq{

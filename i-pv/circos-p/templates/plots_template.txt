@@ -288,7 +288,7 @@ flow = continue
 
 
 <plot>
-
+#has_variations
 type = text
 file = ../datatracks/text_plot_missense.txt
 r0 = 1.09r
@@ -406,7 +406,7 @@ flow = continue
 
 
 <plot>
-
+#has_variations
 type             = tile
 file             = ../datatracks/tile_plot.txt
 color            = black

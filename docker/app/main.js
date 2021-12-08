@@ -75,13 +75,14 @@
 			
 			if(info.nodaemon){
 				execute(
-					/*
-					'cross-env-shell perl ' 
+					
+					binaries["cross-env-shell"]
+					+ " perl "
 					+ info.ipvPath 
 					+ " --config " 
 					+ info.input
-					*/
-					binaries["cross-env-shell"] + " perl ./test.pl"
+					
+					/*binaries["cross-env-shell"] + " perl ./test.pl"*/
 				).then(function(){
 					console.log("Execution success.");
 					process.exit(0);

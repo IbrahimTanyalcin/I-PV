@@ -352,14 +352,16 @@
 					Or_Con_Fill_Color.push(d3.select(ids["con"][i]).style("fill"));
 				}
 			})();
-			var Or_Mut_Font_Size = d3.select(ids["mut"][0]).attr("font-size");
+			var Or_Mut_Font_Size = ids["mut"][0]
+				&& d3.select(ids["mut"][0]).attr("font-size");
 			var Or_Mut_Fill_Color = [];
 			(function (){
 				for (var i = 0;i<ids["mut"].length;i++) {
 					Or_Mut_Fill_Color.push(d3.select(ids["mut"][i]).style("fill"));
 				}
 			})();
-			var Or_Connector_Font_Size = d3.select(ids["connector"][0]).attr("font-size");
+			var Or_Connector_Font_Size = ids["connector"][0] 
+				&& d3.select(ids["connector"][0]).attr("font-size");
 			//***Original Properties of Drawing elements***
 			
 			

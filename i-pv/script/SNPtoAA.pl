@@ -16,6 +16,7 @@ use Cwd qw(abs_path);
 use lib dirname(abs_path $0);
 use ipv_modules::consumeInput qw(consumeInput);
 use ipv_modules::config;
+use ipv_modules::variation qw(renderVar);
 
 my $PATH;
 my $help;
@@ -65,6 +66,9 @@ $| = consumeInput(
 	}
 );
 
+my $cCache = $consumer -> {cache}; #consumer cache
+$consumer -> preflight; #validate some parameters upfront
+
 if ((defined $PATH)&&($PATH =~ /^.*[\/\\].*\s*|^-.*[\/\\].*\s*/)) {
 	$PATH = $PATH;
 	chomp $PATH;
@@ -75,7 +79,7 @@ if ((defined $PATH)&&($PATH =~ /^.*[\/\\].*\s*|^-.*[\/\\].*\s*/)) {
 		$configJSON,
 		{
 			"ask" => $consumer -> ask,
-			"callback" => $consumer -> path -> {callback}
+			"callback" => $cCache -> {path} -> {callback}
 		}
 	);
 	chomp $_;
@@ -90,8 +94,11 @@ if ($PATH_domestic eq "") {
 	$PATH_domestic = "..";
 }
 
-$consumer -> path -> {setRelPath} -> ($PATH_domestic);
+$cCache -> {path} -> {setRelPath} -> ($PATH_domestic);
 $consumer -> set("scriptPath", dirname(abs_path(__FILE__)));
+if ($consumer -> {configDefined}) {
+	$consumer -> set("configDir", dirname(abs_path($config)));
+}
 
 my %degenerate_code = (
 	"A" => ["GCT","GCC","GCA","GCG","Nonpolar"], 
@@ -152,7 +159,7 @@ my $fasta = consumeInput(
 );
 chomp $fasta;
 
-open(my $fastafile, '<', $consumer -> path -> {input} -> ($fasta, "fasta")) 
+open(my $fastafile, '<', $cCache -> {path} -> {input} -> ($fasta, "fasta")) 
 or $consumer -> {configDefined}
 	? $consumer -> err(["Cannot open $fasta"])
 	: goto REENTER_FASTA;
@@ -193,7 +200,7 @@ $_ = consumeInput(
 );
 chomp $_;
 my $cdnafilename = $_;
-open(my $cdnafile, '<', $consumer -> path -> {input} -> ($cdnafilename, "cdna")) 
+open(my $cdnafile, '<', $cCache -> {path} -> {input} -> ($cdnafilename, "cdna")) 
 or $consumer -> {configDefined}
 	? $consumer -> err(["Cannot open $cdnafilename"])
 	: goto REENTER_CDNA;
@@ -301,15 +308,15 @@ $_ = consumeInput(
 );
 chomp $_;
 $protein_name = $_;
-open(my $karyotypefile, '>', $consumer -> path -> {datatracks} -> ("karyotype")) or die "Cannot open the karyotype file!\n";
+open(my $karyotypefile, '>', $cCache -> {path} -> {datatracks} -> ("karyotype")) or die "Cannot open the karyotype file!\n";
 print "Making karyotype file...\n";
 print $karyotypefile "chr - ".$protein_name." ".$protein_name." "."0"." ".$protein_length."000000"." "."vdgrey"."\n";
 print "KARYOTYPE::OK\n";
 
 
 print "Making protein sequence and scatter plots...\n";
-open(my $sequencefile, '>', $consumer -> path -> {datatracks} -> ("protein_sequence")) or die "Cannot open the sequence file!\n";
-open(my $scatterfile, '>', $consumer -> path -> {datatracks} -> ("scatter")) or die "Cannot open the scatter file!\n";
+open(my $sequencefile, '>', $cCache -> {path} -> {datatracks} -> ("protein_sequence")) or die "Cannot open the sequence file!\n";
+open(my $scatterfile, '>', $cCache -> {path} -> {datatracks} -> ("scatter")) or die "Cannot open the scatter file!\n";
 for (my $i = 0;$i < scalar (@fasta_array);$i++) {
 	my $type;
 	foreach my $keys (keys %degenerate_code) {
@@ -323,652 +330,20 @@ for (my $i = 0;$i < scalar (@fasta_array);$i++) {
 print "SEQUENCE PLOT::OK\n";
 print "SCATTER PLOT::OK\n";
 
-
-my $snp_name;
-REENTER_SNP:
-$consumer -> query("Please provide the name of the SNP file...[e.g SNP.txt]\n");
-$_ = consumeInput(
-	["variation", "fileName"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {callback}
-	}
-);
-chomp $_;
-$snp_name = $_;
-open(my $snpfile, '<', $consumer -> path -> {input} -> ($snp_name, "variation (SNPs)")) 
-or $consumer -> {configDefined}
-	? $consumer -> err(["Cannot open $snp_name"])
-	: goto REENTER_SNP;
-$consumer -> query("Should we skip the header?\n");
-my $answer = consumeInput(
-	["variation", "skipHeader"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {skipHeader}
-	}
-);
-chomp $answer;
-if ($answer =~ /y.*/) {
-	$consumer -> query("How many times should the header be skipped?\n");
-	my $header_skip_times = consumeInput(
-		["variation", "skipHeader"], 
-		$configJSON,
-		{
-			"ask" => $consumer -> ask,
-			"callback" => $consumer -> variation -> {skipHeaderCount}
-		}
-	);
-	chomp $header_skip_times;
-	my $skip_count = 0;
-	until ($skip_count == $header_skip_times) {
-		print "Skipping header...\n";
-		skip_header($snpfile);
-		$skip_count++;
-	}
-} else {
-	print "The header will NOT be skipped...\n";
-}
-
-
-$consumer -> query([
-		"What is the original separator of the data?",
-		"(tabs, spaces, semicolons etc...)",
-		"[Hint: If the spaces in the file is irregular, write 'whitespace'.]"
-	]);
-my $separator = consumeInput(
-	["variation", "separator"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {callback}
-	}
-);
-chomp $separator;
-$consumer -> query([
-	"You will be asked several questions below regarding SNP information.",
-	"You are required to enter an integer only",
-	"which corresponds to a column number.",
-	"First column is numbered 1,",
-	"second 2 and so on..",
-	"Press any key and hit enter to continue"
-]);
-my $emtpty_response = consumeInput(
-	[], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {pass}
-	}
-);
-$consumer -> query([
-	"Which column do you have the change in bases?",
-	"[Hint: It is the column where the ",
-	"ancesteral and alternative alleles",
-	"are separated by a forward slash(eg.A/G,C/T/A..)]"
-]);
-my $basechange_number = consumeInput(
-	["variation", "colBaseChange"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {colBaseChange}
-	}
-);
-chomp $basechange_number;
-$basechange_number -= 1;
-$consumer -> query([
-	"Which column do you have the type of substitution?",
-	"If you do not have a type set, you can also enter",
-	"the previously given base change column."
-]);
-my $substitiontype_number = consumeInput(
-	["variation", "colSubsType"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {colSubsType}
-	}
-);
-chomp $substitiontype_number;
-$substitiontype_number -= 1;
-$consumer -> query([
-	"Which column do you have the substitution coordinates?",
-	"[Hint: Choose the Coding Start column.]"
-]);
-my $substitioncoordinates_number = consumeInput(
-	["variation", "colSubsCoords"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {colSubsCoords}
-	}
-);
-chomp $substitioncoordinates_number;
-$substitioncoordinates_number -= 1;
-$consumer -> query([
-	"Which column do you have the validation status?",
-	"If not applicapable, enter the same column as base change,",
-	"the column where writes A/G,C/T/A etc.."
-]);
-my $validationstatus_number = consumeInput(
-	["variation", "colValStat"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {colValStat}
-	}
-);
-chomp $validationstatus_number;
-$validationstatus_number -= 1;
-$consumer -> query([
-	"Which column do you have the strand of the change?",
-	"[Hint: This is the column where indicates + or - or 1 or -1 for the strand.]"
-]);
-my $strand_number = consumeInput(
-	["variation", "colBaseChangeStrand"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {colBaseChangeStrand}
-	}
-);
-chomp $strand_number;
-$strand_number -= 1;
-$consumer -> query([ 
-	"Which stand is your gene located in?",
-	"[Hint: You can check this from publicly available genome browsers.",
-	"You can enter plus,positive,+,1 or inverse of these parameters.]"
-]);
-my $gene_location = consumeInput(
-	["variation", "colGeneStrand"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {colGeneStrand}
-	}
-);
-chomp $gene_location;
-$consumer -> query([
-	"Please enter your transcript ID [e.g ENGXXXXXXXX,NM_YYYYYY. ].",
-	"[Hint: Write 'ProcessAll' to skip transcript filtering..]"
-]);
-my $transcript_ID = consumeInput(
-	["variation", "transcriptID"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {callback}
-	}
-);
-my $transcript_ID_column;
-chomp $transcript_ID;
-if ($transcript_ID =~ /ProcessAll/) {
-	$transcript_ID_column = "N/A";
-} else {
-	$consumer -> query("Please enter in which column your transcript IDs are located in\n");
-	$transcript_ID_column = consumeInput(
-		["variation", "colTranscriptID"], 
-		$configJSON,
-		{
-			"ask" => $consumer -> ask,
-			"callback" => $consumer -> variation -> {colTranscriptID}
-		}
-	);
-	$transcript_ID_column -= 1;
-}
-
-###PREDICTIONS###
-my $polyphen2;
-RETRY_POLYPHEN2:
-$consumer -> query([
-	"Which column do you have the polyphen2 scores?",
-	"[Hint: Choose the polyphen2 score column. If not available write enter 'NA']"
-]);
-$polyphen2 = consumeInput(
-	["variation", "colPolyphen2"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {colPolyphen2}
-	}
-);
-chomp $polyphen2;
-if ($polyphen2 !~ /^[1-9]+[0-9]*$|^na$/i) {
-	goto RETRY_POLYPHEN2;
-} elsif ($polyphen2 =~ /^[1-9]+[0-9]*$/) {
-	$polyphen2 -= 1;
-}
-my $sift;
-RETRY_SIFT:
-$consumer -> query([
-	"Which column do you have the sift scores?",
-	"[Hint: Choose the sift score column.",
-	"If not available write enter 'NA']"
-]);
-$sift = consumeInput(
-	["variation", "colSift2"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {colSift2}
-	}
-);
-chomp $sift;
-if ($sift !~ /^[1-9]+[0-9]*$|^na$/i) {
-	goto RETRY_SIFT;
-} elsif ($sift =~ /^[1-9]+[0-9]*$/) {
-	$sift -= 1;
-}
-###PREDICTIONS###
-
-###EXTRACT MAF###
-my $maf;
-RETRY_MAF:
-$consumer -> query([
-	"Which column do you have the MAF(minor allele frequency)?",
-	"[Hint: This is a value between 0 and 1. If not available write enter 'NA']"
-]);
-$maf = consumeInput(
-	["variation", "maf"], 
-	$configJSON,
-	{
-		"ask" => $consumer -> ask,
-		"callback" => $consumer -> variation -> {maf}
-	}
-);
-chomp $maf;
-if ($maf !~ /^[1-9]+[0-9]*$|^na$/i) {
-	goto RETRY_MAF;
-} elsif ($maf =~ /^[1-9]+[0-9]*$/) {
-	$maf -= 1;
-}
-###EXTRACT MAF###
-
-print "Making missense SNP text plot...\n";
-my @SNPtextplot_inventory;
-my $missense_counter = 0;
-my %reversebase = ("A" => "T", "T" => "A", "C" => "G", "G" => "C");
-open(my $snpfile_missense_textplot, '>', $consumer -> path -> {datatracks} -> ("text_plot_missense")) or die "Cannot open the text plot file!\n";
-while (<$snpfile>) {
-	$consumer -> {cache} -> {transliterate} -> {lfCr} -> (\$_);
-	chomp;
-	my @each_line =  separator ($_);
-	my @snp_data = ();
-	###PREDICTIONS###
-	my %prediction_data = fetch_predictions(\@each_line);
-	###PREDICTIONS###
-	###MAF###
-	my $ipvMAF;
-	if (($maf =~ /^[1-9]+[0-9]*$/) && (defined $each_line[$maf]) && ($each_line[$maf] !~ /^\s*\t*$/)) {
-		$ipvMAF = $each_line[$maf];
-	} else {
-		$ipvMAF = "NA";
-	}
-	###MAF###
-	push (@snp_data, $each_line[$basechange_number]);
-	push (@snp_data, $each_line[$substitiontype_number]);
-	push (@snp_data, $each_line[$substitioncoordinates_number]);
-	push (@snp_data, $each_line[$validationstatus_number]);
-	push (@snp_data, $each_line[$strand_number]);
-	#Look inside the file for rsID
-	for (my $i = 0;$i <= $#each_line;$i++) {
-		if ($each_line[$i] =~ /rs[0-9]+/ ) {
-			push(@snp_data, $each_line[$i]);
-			last;
-		}
-		if ($i == $#each_line) {
-			#If no rsID is found a NotAvailable string pushed instead
-			push (@snp_data, "rsID_NotAvailable");
-		}
-	}
-	#Look for variation source in the file
-	for (my $i = 0;$i <= $#each_line;$i++) {
-		if ($each_line[$i] =~ /dbsnp|clinvar|hgmd|phencode|customdb|^esp$|^\s*human\s*core\s*exome/i ) {
-			push(@snp_data, $each_line[$i]);
-			last;
-		}
-		if ($i == $#each_line) {
-			#If no source is found than push a string instead
-			push (@snp_data, "source_NotAvailable");
-		}
-	}
-	if ($transcript_ID !~ /ProcessAll/) {
-		if ($each_line[$transcript_ID_column] !~ /$transcript_ID/) {
-			#You can turn on the below warning if you want but it might flod the screen with some inputs that contain a lot of transcripts.
-			#print "Transcript filtered based on choice..\n";
-			next;
-		}
-	}
-	if (!defined $snp_data[2]){
-		#I wanted to include the below warning however it really dominates the screen..
-		#print "Encountered empty coding start. Must have been in an intron. Skipping..\n";
-		next;
-	}
-	my $SNPtextplot_inventory_element = "";
-	#print "Short circuit check!\n";
-	for (my $i = 0;$i<=$#snp_data;$i++){
-		$SNPtextplot_inventory_element = $SNPtextplot_inventory_element.$snp_data[$i];
-	}
-	#Smartmatch is experimental in newer versions of Perl so I decided to write something equivalent to it
-	#if($SNPtextplot_inventory_element ~~ @SNPtextplot_inventory){
-	if(grep {$SNPtextplot_inventory[$_] =~ $SNPtextplot_inventory_element} (0..$#SNPtextplot_inventory)){
-		print "Duplicate line detected. Skipping this mutation...\n";
-		next;
-	}
-	#print "Short circuit check!\n";
-	my $validation_status;
-	if ($snp_data[3] =~ /^y.*/) {
-		 $validation_status = "Validated";
-	} elsif ($snp_data[3] =~ /^n.*/) {
-		$validation_status = "Not_Validated";
-	} else {
-		$validation_status = "N/A";
-	}
-	if ((($snp_data[1] =~ /subst/)||($snp_data[1] =~ /miss/)||($snp_data[1] =~ /non/)||($snp_data[1] =~ /syn/)||(($snp_data[1] !~ /-/)&&($snp_data[1] !~ /in|del/)))&&($snp_data[2] =~ /^[1-9]{1}[0-9]*$/)&&($snp_data[0] =~ /^\s*[ATCG]\/([ATCG]\/)*[ATCG]\s*$/)) {
-		#print "Short circuit check!\n";
-		my @change = split ("/",$snp_data[0]);
-		my $position = $snp_data[2];
-		#The below if statement will check if the cdna matches whats written as reference in the snp file.
-		#It could be that for instance in SNP file you have C as reference on - strand and your gene is on plus strand and the cdna at that position is T. This situation will NOT pass as FALSE below and be skipped.
-		#A second check at lines 317 or 373 is also performed on codon level. The below 3 variable are not necessary, array brackets seems to be parsed in quotes..
-		#my $cdna_check = $cdna_array[$position-1];
-		#my $reverse_cdna_check = $reversebase{$cdna_array[$position-1]};
-		#my $snpfile_check = $change[0];
-		if (((($gene_location =~ /^((pos)|(plu)|([+])|(1))/)&&($snp_data[4] =~ /^((pos)|(plu)|([+])|(1))/))||(($gene_location =~ /^((-)|(neg)|(min)|(-1))/)&&($snp_data[4] =~ /^((-)|(neg)|(min)|(-1))/))) &&($cdna_array[$position-1] ne $change[0])) {
-			print "Sense strand error at position $position(cdna: $cdna_array[$position-1], file: $change[0]). Skipping..\n";
-			next;
-		} elsif (((($gene_location =~ /^((-)|(neg)|(min)|(-1))/)&&($snp_data[4] =~ /^((pos)|(plu)|([+])|(1))/))||(($gene_location =~ /^((pos)|(plu)|([+])|(1))/)&&($snp_data[4] =~ /^((-)|(neg)|(min)|(-1))/))) &&($reversebase{$cdna_array[$position-1]} ne $change[0])) {
-			print "Anti-sense strand error at position $position(reverse_cdna: $reversebase{$cdna_array[$position-1]}, file: $change[0]). Skipping..\n";
-			next;
-		}
-		if (($position % 3 != 0)&&($position/3 <= $protein_length)) {
-			my $cdna_codon = $cdna_array[(int($position/3)*3)].$cdna_array[(int($position/3)*3)+1].$cdna_array[(int($position/3)*3)+2];
-			my @cdna_codon_array = ($cdna_array[(int($position/3)*3)], $cdna_array[(int($position/3)*3)+1], $cdna_array[(int($position/3)*3)+2]);
-			my $fasta_aminoacid = $fasta_array[int($position/3)];
-			my $cdna_aminoacid;
-			foreach my $element (keys %degenerate_code) {
-				for (my $i = 0;$i < $#{$degenerate_code{$element}};$i++) {
-					if (${$degenerate_code{$element}}[$i] eq $cdna_codon) {
-						$cdna_aminoacid = $element;
-					}
-				}
-			}
-			if ($cdna_aminoacid eq $fasta_aminoacid) {
-				print "Fasta data matches cdna data at position $position...\n";
-			} else {
-				print "CAUTION, no match at position $position to your fasta file...\nMust have been a wrong transcript..Skipping this mutation\n";
-				next;
-			}
-			my $cdna_aminoacid_new;
-			my $type;
-			my $changed_base_number = int((($position/3)-int($position/3))/0.3) - 1;
-			for (my $i = 1;$i < scalar (@change);$i++) {
-				if ($change[$i] =~ /^[ATCG]{1}$/) {
-					if ((($gene_location =~ /^((pos)|(plu)|([+])|(1))/)&&($snp_data[4] =~ /^((-)|(neg)|(min)|(-1))/))||(($gene_location =~ /^((-)|(neg)|(min)|(-1))/)&&($snp_data[4] =~ /^((pos)|(plu)|([+])|(1))/))) {
-						if ($change[$i] eq "A") {
-							$change[$i] = "T";
-						} elsif ($change[$i] eq "T") {
-							$change[$i] = "A";
-						} elsif ($change[$i] eq "G") {
-							$change[$i] = "C";
-						} elsif ($change[$i] eq "C") {
-							$change[$i] = "G";
-						}
-					}
-					$cdna_codon_array[$changed_base_number] = $change[$i];
-					my $cdna_codon_new = join("",@cdna_codon_array);
-					foreach my $element (keys %degenerate_code) {
-						for (my $i = 0;$i < $#{$degenerate_code{$element}};$i++) {
-							if (${$degenerate_code{$element}}[$i] eq $cdna_codon_new) {
-								$cdna_aminoacid_new = $element;
-							}
-						}
-					}
-					if ($cdna_aminoacid_new eq $cdna_aminoacid) {
-						$type = "Synonymous";
-					} elsif ($cdna_aminoacid_new eq "X") {
-						$type = "Nonsense";
-					} else {
-						$type = "Non-synonymous";
-					}
-					print $snpfile_missense_textplot $protein_name." ".int($position/3)*1000000 ." ".(int($position/3)+1)*1000000 ." "."p.".$cdna_aminoacid. (int($position/3)+1) .$cdna_aminoacid_new." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid. (int($position/3)+1) .$cdna_aminoacid_new."_rsID_".$snp_data[$#snp_data-1]."_$i"."_$missense_counter".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}.",svgipvMAF=".$ipvMAF."\n";
-				} elsif (($change[$i] =~ /^-$/)||(scalar(split("",$change[$i])) % 3 != 1)) {
-					$type = "Frameshift";
-					print $snpfile_missense_textplot $protein_name." ".int($position/3)*1000000 ." ".(int($position/3)+1)*1000000 ." "."p.".$cdna_aminoacid. (int($position/3)+1) ."fs"." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid. (int($position/3)+1) ."fs"."_rsID_".$snp_data[$#snp_data-1]."_$i"."_$missense_counter".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}.",svgipvMAF=".$ipvMAF."\n";
-				}
-			}
-		} elsif ($position/3 <= $protein_length) {
-			my $cdna_codon = $cdna_array[((int($position/3)-1)*3)].$cdna_array[((int($position/3)-1)*3)+1].$cdna_array[((int($position/3)-1)*3)+2];
-			my @cdna_codon_array = ($cdna_array[((int($position/3)-1)*3)], $cdna_array[((int($position/3)-1)*3)+1], $cdna_array[((int($position/3)-1)*3)+2]);
-			my $fasta_aminoacid = $fasta_array[int($position/3)-1];
-			my $cdna_aminoacid;
-			foreach my $element (keys %degenerate_code) {
-				for (my $i = 0;$i < $#{$degenerate_code{$element}};$i++) {
-					if (${$degenerate_code{$element}}[$i] eq $cdna_codon) {
-						$cdna_aminoacid = $element;
-					}
-				}
-			}
-			if ($cdna_aminoacid eq $fasta_aminoacid) {
-				print "Fasta data matches cdna data at position $position...\n";
-			} else {
-				print "CAUTION, no match at position $position to your fasta file...\nMust have been a wrong transcript..Skipping this mutation\n";
-				next;
-			}
-			my $cdna_aminoacid_new;
-			my $type;
-			my $changed_base_number = 2;
-			for (my $i = 1;$i < scalar (@change);$i++) {
-				if ($change[$i] =~ /^[ATCG]{1}$/) {
-					if ((($gene_location =~ /^((pos)|(plu)|([+])|(1))/)&&($snp_data[4] =~ /^((-)|(neg)|(min)|(-1))/))||(($gene_location =~ /^((-)|(neg)|(min)|(-1))/)&&($snp_data[4] =~ /^((pos)|(plu)|([+])|(1))/))) {
-						if ($change[$i] eq "A") {
-							$change[$i] = "T";
-						} elsif ($change[$i] eq "T") {
-							$change[$i] = "A";
-						} elsif ($change[$i] eq "G") {
-							$change[$i] = "C";
-						} elsif ($change[$i] eq "C") {
-							$change[$i] = "G";
-						}
-					}
-					$cdna_codon_array[$changed_base_number] = $change[$i];
-					my $cdna_codon_new = join("",@cdna_codon_array);
-					foreach my $element (keys %degenerate_code) {
-						for (my $i = 0;$i < $#{$degenerate_code{$element}};$i++) {
-							if (${$degenerate_code{$element}}[$i] eq $cdna_codon_new) {
-								$cdna_aminoacid_new = $element;
-							}
-						}
-					}
-					if ($cdna_aminoacid_new eq $cdna_aminoacid) {
-						$type = "Synonymous";
-					} elsif ($cdna_aminoacid_new eq "X") {
-						$type = "Nonsense";
-					} else {
-						$type = "Non-synonymous";
-					}
-					print $snpfile_missense_textplot $protein_name." ".(int($position/3)-1)*1000000 ." ".(int($position/3))*1000000 ." "."p.".$cdna_aminoacid.int($position/3) .$cdna_aminoacid_new." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid.int($position/3) .$cdna_aminoacid_new."_rsID_".$snp_data[$#snp_data-1]."_$i"."_$missense_counter".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}.",svgipvMAF=".$ipvMAF."\n";
-				} elsif (($change[$i] =~ /^-$/)||(scalar(split("",$change[$i])) % 3 != 1)) {
-					$type = "Frameshift";
-					print $snpfile_missense_textplot $protein_name." ".(int($position/3)-1)*1000000 ." ".(int($position/3))*1000000 ." "."p.".$cdna_aminoacid.int($position/3) ."fs"." "."type=".$type.","."validation=".$validation_status.","."svgclass=mut".","."svgid=".$cdna_aminoacid.int($position/3) ."fs"."_rsID_".$snp_data[$#snp_data-1]."_$i"."_$missense_counter".",svgdbsource=".$snp_data[$#snp_data].",svgpolyphen2=".$prediction_data{"polyphen2"}.",svgsift=".$prediction_data{"sift"}.",svgipvMAF=".$ipvMAF."\n";
-				}
-			}
-		}
-		push (@SNPtextplot_inventory,$SNPtextplot_inventory_element);
-		#WRONG_TRANSCRIPT:
-		$missense_counter++;
-	}
-}
-print "SNP-TEXT PLOT::OK\n";
-
-
-
-print "Making variation tile plot...\n";
-my @SNPtileplot_inventory;
-open($snpfile, '<', $consumer -> path -> {input} -> ($snp_name, "variation (SNPs)")) or die "Cannot open the snp file!\n";
-open(my $tilefile, '>', $consumer -> path -> {datatracks} -> ("tile_plot")) or die "Cannot open the tile plot file!\n";
-my $tile_ID = 0;
-while (<$snpfile>) {
-	$consumer -> {cache} -> {transliterate} -> {lfCr} -> (\$_);
-	chomp;
-	my @each_line =  separator ($_);
-	my @snp_data = ();
-	push (@snp_data, $each_line[$basechange_number]);
-	push (@snp_data, $each_line[$substitiontype_number]);
-	push (@snp_data, $each_line[$substitioncoordinates_number]);
-	push (@snp_data, $each_line[$validationstatus_number]);
-	push (@snp_data, $each_line[$strand_number]);
-	#Look inside the file for rsID
-	for (my $i = 0;$i <= $#each_line;$i++) {
-		if ($each_line[$i] =~ /rs[0-9]+/ ) {
-			push(@snp_data, $each_line[$i]);
-			last;
-		}
-		if ($i == $#each_line) {
-			#If no rsID is found a NotAvailable string pushed instead
-			push (@snp_data, "rsID_NotAvailable");
-		}
-	}
-	#Look for variation source in the file
-	for (my $i = 0;$i <= $#each_line;$i++) {
-		if ($each_line[$i] =~ /dbsnp|clinvar|hgmd|phencode|customdb|^esp$|^\s*human\s*core\s*exome/i ) {
-			push(@snp_data, $each_line[$i]);
-			last;
-		}
-		if ($i == $#each_line) {
-			#If no source is found than push a string instead
-			push (@snp_data, "source_NotAvailable");
-		}
-	}
-	if ($transcript_ID !~ /ProcessAll/) {
-		if ($each_line[$transcript_ID_column] !~ /$transcript_ID/) {
-			#You can turn on the below warning if you want but it might flod the screen with some inputs that contain a lot of transcripts.
-			#print "Transcript filtered based on choice..\n";
-			next;
-		}
-	}
-	if (!defined $snp_data[2]){
-		#I wanted to include the below warning however it really dominates the screen..
-		#print "Encountered empty coding start. Must have been in an intron. Skipping..\n";
-		next;
-	}
-	my $validation_status;
-	#print @snp_data."\n";
-	if (($snp_data[2] =~ /^[1-9]{1}[0-9]*$/) && ($snp_data[0] =~ /^\s*([ATCG]+|-)\/(([ATCG]+|-)\/)*([ATCG]+|-)\s*$/)) {
-		if ($snp_data[3] =~ /^y.*/) {
-			$validation_status = "Validated";
-		} elsif ($snp_data[3] =~ /^n.*/) {
-			$validation_status = "Not_Validated";
-		} else {
-			$validation_status = "N/A";
-		}
-		my @change = split ("/",$snp_data[0]);
-		my @change_length = (0,0);
-		my $IndexOfLongestChange = $#change;
-		my $IndexOf2ndLongestChange = $#change;
-		for (my $i = $#change;$i>=0;$i--) {
-			my @splitted = split ("",$change[$i]);
-			my $length = scalar(@splitted);
-			if ($length > $change_length[$#change_length]) {
-				shift @change_length;
-				push (@change_length, $length);
-				$IndexOf2ndLongestChange = $IndexOfLongestChange;
-				$IndexOfLongestChange = $i;
-			}
-		}
-		my $change_length_aa;
-		if ($change_length[$#change_length] % 3 != 0) {
-			$change_length_aa = int($change_length[$#change_length]/3)+1;
-		} else {
-			$change_length_aa = int($change_length[$#change_length]/3);
-		}
-		my $position = $snp_data[2];
-		my $type = $snp_data[1];
-		if ($snp_data[1] !~ /subst|miss|non|syn|in|del/) {
-			if(($snp_data[1] !~ /-/) && ($snp_data[1] =~ /^\s*[ATCG]\/([ATCG]\/)*[ATCG]\s*$/)) {
-				$type = "subst";
-			} else {
-				$type = "indel";
-			}
-		}
-		#***DuplicateCheck***
-		my $SNPtileplot_inventory_element = "";
-		for (my $i = 0;$i<=$#snp_data;$i++){
-			$SNPtileplot_inventory_element = $SNPtileplot_inventory_element.$snp_data[$i];
-		}
-		$SNPtileplot_inventory_element = $SNPtileplot_inventory_element.$type;
-		if(grep {$SNPtileplot_inventory[$_] =~ $SNPtileplot_inventory_element} (0..$#SNPtileplot_inventory)){
-			print "Duplicate line detected (might also be multiple SNPs combined under single rsID or base change column..). Skipping this tile..\n";
-			next;
-		}
-		#***DuplicateCheck***
-		#***InsertionOrDeletion***
-		my $InsOrDel;
-		if ($type =~ /in|del/) {
-			if (($snp_data[0] =~ /^\s*-\/.*/) || ($change_length[$#change_length]>length($change[0]))) {
-				$InsOrDel = "insertion";
-			} else {
-				$InsOrDel = "deletion";
-			}
-		} else {
-			$InsOrDel = "substitution";
-		}
-		#***InsertionOrDeletion***
-		
-		#***Is it a frameshift***
-		my $frameshift;
-		if ($change[0] =~ /^\s*-/) {
-			if ($change_length[$#change_length] % 3 == 0) {
-				$frameshift = "";
-			} else {
-				$frameshift = "frameshift";
-			}
-		} elsif (($change[$IndexOfLongestChange] !~ /^\s*-/) && ($IndexOfLongestChange != 0)) {
-			my $difference = abs($change_length[$#change_length]-length($change[0]));
-			if ($difference % 3 == 0) {
-				$frameshift = "";
-			} else {
-				$frameshift = "frameshift";
-			}
-		} elsif ($change[$IndexOf2ndLongestChange] !~ /^\s*-/) {
-			my $difference = abs($change_length[$#change_length-1]-length($change[0]));
-			if ($difference % 3 == 0) {
-				$frameshift = "";
-			} else {
-				$frameshift = "frameshift";
-			}
-		} else {
-			my $difference = length($change[0]);
-			if ($difference % 3 == 0) {
-				$frameshift = "";
-			} else {
-				$frameshift = "frameshift";
-			}
-		}
-		#***Is it a frameshift***
-		
-		#the definition for all tile svg class is ".tile", the svg id is "#tileID_position_changelength_InsOrDel_Frameshift"
-		if (($position % 3 != 0)&&($position/3 <= $protein_length)) {
-			if ($InsOrDel ne "deletion") {
-				print $tilefile $protein_name." ".(int($position/3)-$change_length_aa/2)*1000000 ." ".(int($position/3)+$change_length_aa/2)*1000000 ." "."type=".$type.","."validation=".$validation_status.","."svgclass=tile".","."svgid="."tile".$tile_ID."_".$position."_".$change_length_aa."_".$InsOrDel."_".$frameshift.","."svgdbsource=".$snp_data[$#snp_data].","."svgtilersid=".$snp_data[$#snp_data-1]."\n";
-			} else {
-				print $tilefile $protein_name." ".(int($position/3))*1000000 ." ".(int($position/3)+$change_length_aa)*1000000 ." "."type=".$type.","."validation=".$validation_status.","."svgclass=tile".","."svgid="."tile".$tile_ID."_".$position."_".$change_length_aa."_".$InsOrDel."_".$frameshift.","."svgdbsource=".$snp_data[$#snp_data].","."svgtilersid=".$snp_data[$#snp_data-1]."\n";
-			}
-		} elsif ($position/3 <= $protein_length) {
-			if ($InsOrDel ne "deletion") {
-				print $tilefile $protein_name." ".(int($position/3)-1-$change_length_aa/2)*1000000 ." ".(int($position/3)-1+$change_length_aa/2)*1000000 ." "."type=".$type.","."validation=".$validation_status.","."svgclass=tile".","."svgid="."tile".$tile_ID."_".$position."_".$change_length_aa."_".$InsOrDel."_".$frameshift.","."svgdbsource=".$snp_data[$#snp_data].","."svgtilersid=".$snp_data[$#snp_data-1]."\n";
-			} else {
-				print $tilefile $protein_name." ".(int($position/3)-1)*1000000 ." ".(int($position/3)-1+$change_length_aa)*1000000 ." "."type=".$type.","."validation=".$validation_status.","."svgclass=tile".","."svgid="."tile".$tile_ID."_".$position."_".$change_length_aa."_".$InsOrDel."_".$frameshift.","."svgdbsource=".$snp_data[$#snp_data].","."svgtilersid=".$snp_data[$#snp_data-1]."\n";
-			}
-		}
-		push (@SNPtileplot_inventory,$SNPtileplot_inventory_element);
-	}
-	$tile_ID++;
-}
-print "TILE PLOT::OK\n";
+###############################################################################
+##########################CHECK VARIATION PM###################################
+my ($missense_counter) = @{renderVar(
+	$protein_name, 
+	$protein_length,
+	$consumer, 
+	$configJSON, 
+	$cCache, 
+	\%degenerate_code, 
+	\@fasta_array,
+	\@cdna_array
+)};
+###############################################################################
+###############################################################################
 
 #***MODICT plot is experimental***
 my $modictplot_answer = "no";
@@ -981,7 +356,7 @@ if ($modictplot_answer !~ /^y.*/) {
 	goto SKIP_MODICT_1;
 }
 print "Making MODICT plot...\n";
-open(my $modictfile, '>', $consumer -> path -> {datatracks} -> ("modict_plot")) or die "Cannot open the modict plot file!\n";
+open(my $modictfile, '>', $cCache -> {path} -> {datatracks} -> ("modict_plot")) or die "Cannot open the modict plot file!\n";
 print "Please type in the name of your iterator results in file..\n";
 my $iterator_results = <STDIN>;
 chomp $iterator_results;
@@ -995,16 +370,16 @@ my $conservation = consumeInput(
 		"callback" => $consumer -> conservation -> {callback}
 	}
 );
-chomp $conservation;
+$consumer -> {consFile} && chomp $conservation;
 if ($modictplot_answer !~ /^y.*/) {
 	goto SKIP_MODICT_2;
 }
-open(my $iteratorfile, '<', $consumer -> path -> {input} -> ($iterator_results, "iterator results")) or die "Cannot open the iterator file!\n";
+open(my $iteratorfile, '<', $cCache -> {path} -> {input} -> ($iterator_results, "iterator results")) or die "Cannot open the iterator file!\n";
 SKIP_MODICT_2:
 
 $consumer -> {consFile} 
 && (
-	open(my $conservationfile, '<', $consumer -> path -> {input} -> ($conservation, "conservation")) 
+	open(my $conservationfile, '<', $cCache -> {path} -> {input} -> ($conservation, "conservation")) 
 	or (
 		$consumer -> {configDefined}
 		? $consumer -> err([
@@ -1072,7 +447,7 @@ print "MODICT PLOT::OK\n";
 
 SKIP_MODICT_4:
 print "Making the highlights file...\n";
-open(my $highlightfile, '>', $consumer -> path -> {datatracks} -> ("highlights")) or die "Cannot open the highlights file!\n";
+open(my $highlightfile, '>', $cCache -> {path} -> {datatracks} -> ("highlights")) or die "Cannot open the highlights file!\n";
 if ($domains[0] > 1) {
 	my $i = 0;
 	until (($i+2) > $domains[0]) {
@@ -1142,8 +517,8 @@ my @markup = ();
 my %markup_colors;
 my $markup_count = 0;
 markup();
-open(my $connectorfile, '>', $consumer -> path -> {datatracks} -> ("connector")) or die "Cannot open the connector file!\n";
-open(my $connector_text_file, '>', $consumer -> path -> {datatracks} -> ("connector_text")) or die "Cannot open the connector_text file!\n";
+open(my $connectorfile, '>', $cCache -> {path} -> {datatracks} -> ("connector")) or die "Cannot open the connector file!\n";
+open(my $connector_text_file, '>', $cCache -> {path} -> {datatracks} -> ("connector_text")) or die "Cannot open the connector_text file!\n";
 for (my $i = 0; $i < scalar(@markup); $i += 4) {
 		print $connectorfile $protein_name." ".($markup[$i+1]+$markup[$i] - 1)/2*1000000 ." ".($markup[$i]-1)*1000000 ." property=".$markup[$i+3]."\n";
 		print $connectorfile $protein_name." ".($markup[$i+1]+$markup[$i] - 1)/2*1000000 ." ".($markup[$i+1])*1000000 ." property=".$markup[$i+3]."\n";
@@ -1156,14 +531,14 @@ print join(
 	"\n",
 	@{[
 		"Your plot files are created under",
-		$consumer -> path -> {datatracksDir} -> (),
+		$cCache -> {path} -> {datatracksDir} -> (),
 		""
 	]}
 );
 
 print "Configuring plots.conf file from plots template..\n";
-open(my $plotfile, '>', $consumer -> path -> {datatracks} -> ("plot")) or die "Cannot write to plot file!\n";
-open(my $templatefile, '<', $consumer -> path -> {templates} -> ("plots_template")) or die "Cannot open the template file!\n";
+open(my $plotfile, '>', $cCache -> {path} -> {datatracks} -> ("plot")) or die "Cannot write to plot file!\n";
+open(my $templatefile, '<', $cCache -> {path} -> {templates} -> ("plots_template")) or die "Cannot open the template file!\n";
 #Parameters that can go crazy
 $missense_counter = $missense_counter || 625;
 my $label_size_missense = int(40/(sqrt($missense_counter)/15));
@@ -1180,90 +555,95 @@ if ($link_thickness_missense > 6) {
 }
 #Parameters that can go crazy
 while (<$templatefile>) {
-	if ($_ =~ /#coil_1/) {
-		if ($consumer -> {consFile}) {
-			print $plotfile "r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),"
-				.$conservation_min
-				.","
-				.$conservation_max
-				.",0,9)] .'r')\n";
-		} else {
-			print $plotfile "r1 = eval("
-			."qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[" 
-			.$consumer -> {consBarHeight}
-			."] . 'r')\n";
-		}
-	} elsif ($_ =~ /#domain_colors/) {
-		foreach my $element (keys %domain_colors) {
-			my @results= prefixer ($domain_colors{$element});
+	if ($_ =~ /^\s*#/) {
+		if ($_ =~ /#coil_1/) {
 			if ($consumer -> {consFile}) {
-				print $plotfile "<rule>\ncondition = var(type) eq 'Domain' && var(property) eq "
-					."'$element'"
-					."\n"
-					."stroke_color = "
-					.$domain_colors{$element}
-					."\n"
-					."fill_color = "
-					.$results[0]
-					.$results[1]
-					."\n"
-					."r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),"
+				print $plotfile "r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),"
 					.$conservation_min
 					.","
 					.$conservation_max
-					.",0,9)] .'r')"
-					."\n"
-					."flow = continue\n</rule>\n";
+					.",0,9)] .'r')\n";
 			} else {
-				print $plotfile "<rule>\ncondition = var(type) eq 'Domain' && var(property) eq "
-					."'$element'"
-					."\n"
-					."stroke_color = "
-					.$domain_colors{$element}
-					."\n"
-					."fill_color = "
-					.$results[0]
-					.$results[1]
-					."\n"
-					."r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)["
-					.$consumer -> {consBarHeight}
-					."] . 'r')\n"
-					."flow = continue\n</rule>\n";
+				print $plotfile "r1 = eval("
+				."qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[" 
+				.$consumer -> {consBarHeight}
+				."] . 'r')\n";
 			}
+		} elsif ($_ =~ /#domain_colors/) {
+			foreach my $element (keys %domain_colors) {
+				my @results= prefixer ($domain_colors{$element});
+				if ($consumer -> {consFile}) {
+					print $plotfile "<rule>\ncondition = var(type) eq 'Domain' && var(property) eq "
+						."'$element'"
+						."\n"
+						."stroke_color = "
+						.$domain_colors{$element}
+						."\n"
+						."fill_color = "
+						.$results[0]
+						.$results[1]
+						."\n"
+						."r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)[remap_round(var(conservation),"
+						.$conservation_min
+						.","
+						.$conservation_max
+						.",0,9)] .'r')"
+						."\n"
+						."flow = continue\n</rule>\n";
+				} else {
+					print $plotfile "<rule>\ncondition = var(type) eq 'Domain' && var(property) eq "
+						."'$element'"
+						."\n"
+						."stroke_color = "
+						.$domain_colors{$element}
+						."\n"
+						."fill_color = "
+						.$results[0]
+						.$results[1]
+						."\n"
+						."r1 = eval(qw(1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.1)["
+						.$consumer -> {consBarHeight}
+						."] . 'r')\n"
+						."flow = continue\n</rule>\n";
+				}
+			}
+		} elsif ($_ =~ /#label_size_sequence/) {
+			print $plotfile "label_size = ".int(40/(sqrt(scalar(@fasta_array))/20))."p\n";
+		} elsif ($_ =~ /#glyph_size_scatter/) {
+			print $plotfile "glyph_size = ".int(45/(sqrt(scalar(@fasta_array))/20))."p\n";
+		} elsif ($_ =~ /#label_size_missense/) {
+			print $plotfile "label_size = ".$label_size_missense."p\n";
+		} elsif ($_ =~ /#markup_colors1/) {
+			foreach my $element (keys %markup_colors) {
+				#Not needed here.
+				#$result_prefix= prefixer ($markup_colors{$element});
+				print $plotfile "<rule>\ncondition = var(property) eq "."'$element'"."\n"."color = ".$markup_colors{$element}."\n"."flow = continue\n</rule>\n";
+			}
+		} elsif ($_ =~ /#markup_colors2/) {
+			foreach my $element (keys %markup_colors) {
+				#Not needed here.
+				#$result_prefix= prefixer ($markup_colors{$element});
+				print $plotfile "<rule>\ncondition = var(property) eq "."'$element'"."\n"."color = ".$markup_colors{$element}."\n"."flow = continue\n</rule>\n";
+			}
+		} elsif ($_ =~ /#markup_choice1/) {
+			print $plotfile "show = ".$markup_choice."\n";
+		} elsif ($_ =~ /#markup_choice2/) {
+			print $plotfile "show = ".$markup_choice."\n";
+		} elsif ($_ =~ /#tile_thickness/) {
+			print $plotfile "thickness = ".$tile_thickness."p\n";
+		} elsif ($_ =~ /#link_thickness/) {
+			print $plotfile "link_thickness = ".$link_thickness_missense."p\n";
+		} elsif ($_ =~ /#has_variations/) {
+			print $plotfile "show = " . ($consumer -> {hasVariations} ? "yes" : "no") . "\n";
 		}
-	} elsif ($_ =~ /#label_size_sequence/) {
-		print $plotfile "label_size = ".int(40/(sqrt(scalar(@fasta_array))/20))."p\n";
-	} elsif ($_ =~ /#glyph_size_scatter/) {
-		print $plotfile "glyph_size = ".int(45/(sqrt(scalar(@fasta_array))/20))."p\n";
-	} elsif ($_ =~ /#label_size_missense/) {
-		print $plotfile "label_size = ".$label_size_missense."p\n";
-	} elsif ($_ =~ /#markup_colors1/) {
-		foreach my $element (keys %markup_colors) {
-			#Not needed here.
-			#$result_prefix= prefixer ($markup_colors{$element});
-			print $plotfile "<rule>\ncondition = var(property) eq "."'$element'"."\n"."color = ".$markup_colors{$element}."\n"."flow = continue\n</rule>\n";
-		}
-	} elsif ($_ =~ /#markup_colors2/) {
-		foreach my $element (keys %markup_colors) {
-			#Not needed here.
-			#$result_prefix= prefixer ($markup_colors{$element});
-			print $plotfile "<rule>\ncondition = var(property) eq "."'$element'"."\n"."color = ".$markup_colors{$element}."\n"."flow = continue\n</rule>\n";
-		}
-	} elsif ($_ =~ /#markup_choice1/) {
-		print $plotfile "show = ".$markup_choice."\n";
-	} elsif ($_ =~ /#markup_choice2/) {
-		print $plotfile "show = ".$markup_choice."\n";
-	} elsif ($_ =~ /#tile_thickness/) {
-		print $plotfile "thickness = ".$tile_thickness."p\n";
-	} elsif ($_ =~ /#link_thickness/) {
-		print $plotfile "link_thickness = ".$link_thickness_missense."p\n";
+		next;
 	}
 	print $plotfile $_;
 }
 print "Plot file created.\n";
 print "Renaming extension.\n";
-open($plotfile, '<', $consumer -> path -> {datatracks} -> ("plot")) or die "Cannot read from plot file!\n";
-copy ($plotfile, $consumer -> path -> {datatracks} -> ("plotConf")) or die "$!\n";
+open($plotfile, '<', $cCache -> {path} -> {datatracks} -> ("plot")) or die "Cannot read from plot file!\n";
+copy ($plotfile, $cCache -> {path} -> {datatracks} -> ("plotConf")) or die "$!\n";
 $consumer -> query([
 	"You can either continue for image generation or run circos yourself.",
 	"type 'exit' and enter to quit or press any key and enter to continue.."
@@ -1293,9 +673,6 @@ if ($consumer -> {consFile}) {
 	close $conservationfile or die "$!\n";
 }
 #close $iteratorfile or die "$!\n";
-close $snpfile or die "$!\n";
-close $tilefile or die "$!\n";
-close $snpfile_missense_textplot or die "$!\n";
 close $sequencefile or die "$!\n";
 close $scatterfile or die "$!\n";
 close $karyotypefile or die "$!\n";
@@ -1320,13 +697,13 @@ consumeInput(
 
 #Run circos
 print "Running circos..\n";
-my $circos = $consumer -> path -> {circos} -> ();
+my $circos = $cCache -> {path} -> {circos} -> ();
 # "C:/strawberry/circos-0.67-7/bin/circos"
 my $circos_results = system(
 	$^X, 
 	$circos, 
-	"-conf=" . $consumer -> path -> {templates} -> ("circos_templateConf"),
-	"-outputdir=" . $consumer -> path -> {outputDir} -> ()
+	"-conf=" . $cCache -> {path} -> {templates} -> ("circos_templateConf"),
+	"-outputdir=" . $cCache -> {path} -> {outputDir} -> ()
 );
 print "Your image is created..\n";
 #Run circos
@@ -1334,17 +711,12 @@ print "Your image is created..\n";
 #Inject javascript
 print "Injecting Javascript..\n";
 copy(
-	$consumer -> path -> {outputWithExt} -> ("circos.svg"), 
-	$consumer -> path -> {outputWithExt} -> ("circos.txt")
+	$cCache -> {path} -> {outputWithExt} -> ("circos.svg"), 
+	$cCache -> {path} -> {outputWithExt} -> ("circos.txt")
 ) or die "$!\n";
-my $javascriptfile;
-if ($markup_choice =~ /yes/i) {
-	open($javascriptfile, '<', $consumer -> path -> {templates} -> ("javascript")) or die "Cannot read from javascript template!\n";
-} else {
-	open($javascriptfile, '<', $consumer -> path -> {templates} -> ("javascript_noconnector")) or die "Cannot read from javascript template!\n";
-}
-open(my $svgtextfile, '<', $consumer -> path -> {outputWithExt} -> ("circos.txt")) or die "Cannot read from vector file!\n";
-open(my $htmltextfile, '>', $consumer -> path -> {outputWithExt} -> ("$protein_name.txt")) or die "Cannot write to html text file!\n";
+open(my $javascriptfile, '<', $cCache -> {path} -> {templates} -> ("javascript")) or die "Cannot read from javascript template!\n";
+open(my $svgtextfile, '<', $cCache -> {path} -> {outputWithExt} -> ("circos.txt")) or die "Cannot read from vector file!\n";
+open(my $htmltextfile, '>', $cCache -> {path} -> {outputWithExt} -> ("$protein_name.txt")) or die "Cannot write to html text file!\n";
 
 while (<$javascriptfile>) {
 	my $i = 0;
@@ -1366,32 +738,49 @@ while (<$javascriptfile>) {
 		}
 	}
 }
-open($htmltextfile, '<', $consumer -> path -> {outputWithExt} -> ("$protein_name.txt")) or die "Cannot read from html text!\n";
-copy($htmltextfile, $consumer -> path -> {outputWithExt} -> ("$protein_name.html")) or die "$!\n";
+open($htmltextfile, '<', $cCache -> {path} -> {outputWithExt} -> ("$protein_name.txt")) or die "Cannot read from html text!\n";
+copy($htmltextfile, $cCache -> {path} -> {outputWithExt} -> ("$protein_name.html")) or die "$!\n";
 #Inject javascript
 
 print join(
 	"\n",
 	@{[
 		"Your file $protein_name.html is created under",
-		$consumer -> path -> {outputDir} -> (),
+		$cCache -> {path} -> {outputDir} -> (),
 		""
 	]}
 );
 
 $consumer -> set("onSuccess", 1);
 END {
+	my $onFailMsg = join("\n",@{[
+		"The script did not complete succesfully.",
+		"Some shutdown options like copy\\move will",
+		"not be executed.\n"
+	]});
+	if(!defined $consumer) {
+		die $onFailMsg;
+	}
 	if(!($consumer -> {onSuccess})){
-		warn join(
-			"\n",
-			@{[
-				"The script did not complete succesfully.",
-				"Some shutdown options like copy\\move will",
-				"not be executed",
-				""
-			]}
-		);
+		warn $consumer -> rawMsg($onFailMsg);
 	} else {
+		my $circosCleanup = consumeInput(
+			["circos","cleanup"], 
+			$consumer -> {json}
+		) || 0;
+		if($circosCleanup) {
+			$cCache -> {path} -> {cleanFiles} -> (
+				[grep {$_ !~ m/\.html$/} @{$cCache -> {path} -> {allOutputs} -> ()}]
+			);
+		}
+		$cCache -> {perms} -> {setPerm} -> (
+			$cCache -> {path} -> {allOutputs} -> (),
+			$consumer -> {circosOutputPerms}
+		);
+		$cCache -> {perms} -> {setPerm} -> (
+			$cCache -> {path} -> {allDatatracks} -> (),
+			$consumer -> {datatracksPerms}
+		);
 		my $dtTrckCopy = consumeInput(
 			["datatracks","copy"], 
 			$consumer -> {json}
@@ -1404,81 +793,26 @@ END {
 			["datatracks","move"], 
 			$consumer -> {json}
 		) || 0;
+		#cp is used rather than copy to preseve permissions
 		if ($dtTrckCopy && $dtTrckMove ne $dtTrckCopy){
-			$consumer 
-			-> path
-			-> {copyFiles}
-			-> (
-				$consumer 
-				-> path 
-				-> {allDatatracks} 
-				-> (),
-				$consumer 
-				-> path 
-				-> {datatracksCustomDir}
-				-> ("copy")
+			$cCache -> {path} -> {copyFilesCp} -> (
+				$cCache -> {path} -> {allDatatracks} -> (),
+				$cCache -> {path} -> {datatracksCustomDir} -> ("copy")
 			);
 		}
 		if ($dtTrckMove) {
-			$consumer 
-			-> path
-			-> {moveFiles}
-			-> (
-				$consumer 
-				-> path 
-				-> {allDatatracks} 
-				-> (),
-				$consumer 
-				-> path 
-				-> {datatracksCustomDir}
-				-> ("move")
+			$cCache -> {path} -> {moveFiles} -> (
+				$cCache -> {path} -> {allDatatracks} -> (),
+				$cCache -> {path} -> {datatracksCustomDir} -> ("move")
 			);
 		}
 		if ($dtTrckCleanup && !$dtTrckMove) {
-			$consumer 
-			-> path 
-			-> {cleanFiles} 
-			-> (
-				$consumer 
-				-> path 
-				-> {allDatatracks} 
-				-> ()
+			$cCache -> {path} -> {cleanFiles} -> (
+				$cCache -> {path} -> {allDatatracks} -> ()
 			);
 		}
 	}
 }
-
-sub separator {
-	my $ref = $_[0];
-	my @array;
-	if ($separator =~ /^tab.*/) {
-		@array = split (/\t/, $ref);
-	} elsif ($separator =~ /^spac.*/) {
-		@array = split (/\s/, $ref);
-	} elsif ($separator =~ /^semi.*/) {
-		@array = split (/;/, $ref);
-	} elsif ($separator =~ /^white.*/) {
-		@array = split (/\s+/, $ref);
-	} else {
-		$consumer -> query([
-			"The separator of your choice was undefined",
-			"Please enter the character itself..."
-		]);
-		my $undef_separator = consumeInput(
-			["variation", "separator"], 
-			$configJSON,
-			{
-				"ask" => $consumer -> ask,
-				"callback" => $consumer -> variation -> {callback}
-			}
-		);
-		chomp $undef_separator;
-		print "The character $undef_separator will be used as separator...\n";
-		@array = split ("$undef_separator", $ref);
-	}
-	return @array;
-}
-
 
 sub list_creation {
 	$domain_count++;
@@ -1782,12 +1116,6 @@ sub markup {
 	}
 }
 
-sub skip_header {
-  my $FH = shift;
-  <$FH>;
-}
-
-
 sub prefixer {
 	my $quiery = $_[0];
 	my @splitted = split("",$quiery);
@@ -1899,17 +1227,6 @@ sub take_max {
 sub getopt {
 #Use the getoptions module.
 GetOptions ("help=s" => \$help, "version=s" => \$version, "path=s" => \$PATH, "config=s" => \$config) or die ("Once you enter argument press a key and enter to make sure they are defined.\n[Ex: --help h --version v]\n");
-}
-
-sub fetch_predictions {
-	my @each_line = @{$_[0]};
-	my %hash = ("polyphen2" => "NA", "sift" => "NA");
-	foreach my $element (keys %hash) {
-		if ((eval("\$".$element) =~ /^[1-9]+[0-9]*$/) && (defined $each_line[eval("\$".$element)]) && ($each_line[eval("\$".$element)] !~ /^\s*\t*$/)) {
-			$hash{$element} = $each_line[eval("\$".$element)];
-		}
-	}
-	return %hash;
 }
 
 sub arrayToString {
