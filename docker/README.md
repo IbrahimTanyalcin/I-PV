@@ -14,7 +14,7 @@ Assuming you have a working docker installation, you cloned the I-PV repo and ha
 Pick a folder where you will have your config file, for example `/home/xyz`, and make sure it is writable by others:
 
 ```shell
-chmod ~/xyz -R 755
+chmod -R 755 ~/xyz
 ```
 Copy `i-pv/circos-p/Input/nfkb1` as `testInput`:
 
@@ -63,7 +63,7 @@ You should have your outputs inside `xyz/testOutput/output` with a single file c
 
 Make sure you have docker engine installed.
 
-Once you clone the I-PV repository, go to `./docker` folder:
+Once you clone the I-PV repository, `cd` to `./docker` folder:
 
 ```shell
 docker build -t image_name:tag_name .  

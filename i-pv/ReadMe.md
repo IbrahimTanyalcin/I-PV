@@ -677,8 +677,6 @@ These recommendations are automatically taken care of when using I-PV `^2.0`
 
 - Do not change the files in the `./template` folder. <br>
 - You can watch the tutorial videos online at [**i-pv.org**](http://i-pv.org/)
-- Are you looking for the Javascript codes? Go to the [**circos-p/templates**](./circos-p/templates) folder, you will see 2 files:
-  - `javascript.txt`
-  - `javascript_noconnector.txt`
-- If you did not specify any connectors, then `javascript_noconnector.txt` is used or vice versa. The javascript is encapsulated inside the html tag of which the svg will be embedded by the perl script.<br>
+- Are you looking for the Javascript codes? Go to the [**circos-p/templates**](./circos-p/templates) folder and look for `javascript.txt`.
+- The javascript is encapsulated inside the html tag of which the svg will be embedded by the perl script.<br>
 - `./circos-p/Output` folder might include examples from previous versions.
