@@ -1,5 +1,10 @@
 # Readme
 
+## 🚢 Running with Docker
+
+I-PV has a docker image which you can pull and execute without installing dependencies. Head over to [![Readme-Docker](https://img.shields.io/badge/ipv-docker-azure
+)](https://github.com/IbrahimTanyalcin/I-PV/tree/master/docker) for details.
+
 ## 🚦 Testing
 
 `> npm run test`
@@ -70,7 +75,7 @@ If you want to use I-PV as a part of pipeline or without interactive CLI, run:
 
 Outputs are located under `./circos-p/Output`, unless specified otherwise in a `config.json`.
 
-Datatracks are located under `./circos-p/datatracks` unless overridden by `config.json`. These are instructions for circos, to be used later with `invokeCircos` script.
+Datatracks are located under `./circos-p/datatracks` unless overridden by `config.json`. (These are instructions for circos, to be used later with `invokeCircos` script.)
 
 ## 📚 Dependencies
 
@@ -135,13 +140,34 @@ Circos Perl modules *[version, module name]*
 
 ## ℹ Config options
 
-Here is a sample json that can be passed to `SNPtoAA.pl`, below json is used when you run 
+Here is a minial `config.json` example:
+
+```json
+{
+	"path": "  config  ",
+	"proteinFileName": "testInput/fasta.txt",
+	"mrnaFileName": "testInput\\mRNA.txt",
+	"name": "NFKB",
+	"domains": [
+		{
+			"start": 50,
+			"end": 126,
+			"name": "domain_X",
+			"color": "vdred"
+		}
+	]
+}
+```
+
+And below is a bit more complicated `config.json`. In fact, when when you run:
 
 `> npm run test` 
 
-which in turn runs:
+the command above in turn runs:
 
 `> perl path/to/root/i-pv/script/SNPtoAA.pl --config ./below/config.json`
+
+and below json config is passed to `SNPtoAA.pl`: 
 
 ```json
 {
@@ -217,7 +243,9 @@ For other examples, check `sample-configs` folder.
 | ------------- |:-------------:|
 | Mandatory      | String |
 
-Accepts empty string `""` or `"absolute"`. Empty string means rest of the path parameters are relative as follows:
+You probably would want this option to be set to `"config"`.
+
+- Accepts empty string `""`, `"absolute"` or `"config"` or a `path string`. Empty string means rest of the path parameters are relative as follows:
 
 | Parameter        | Relative to | 
 | ------------- |:-------------:|
@@ -229,13 +257,15 @@ Accepts empty string `""` or `"absolute"`. Empty string means rest of the path p
 | datatracks.move | root/i-pv/circos-p/datatracks     |
 | datatracks.copy | root/i-pv/circos-p/datatracks     |
 
-If path is "absolute", then paths should look like:
+- If path is "absolute", then paths should look like:
 
 `D:\\path\\to\\your/mRNA.txt`
 
 You can use a mix of backslashes and forward slashes, they are auto transliterated to forward slashes in all OS. 
 
-If path is a legitimate path such as `a/b/c` then it means result of `path.join("path/to/SNPtoAA.pll", "a/b/c")` points to `root/i-pv/`. Use this option **ONLY** if you move `SNPtoAA.pl` somewhere else, which you normally would not do.
+- If the path is "config", the all the paths are relative to the config file.
+
+- If path is a legitimate `path string` such as `a/b/c` then it means result of `path.join("path/to/SNPtoAA.pll", "a/b/c")` points to `root/i-pv/`. Use this option **ONLY** if you move `SNPtoAA.pl` somewhere else, which you normally would not do.
 
 ### _autoflush_
 
@@ -297,9 +327,9 @@ This will be the name of the output file and the label that is shown when output
 ### _domains_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Optional      | Array of Object(s) |
+| Mandatory      | Array of Object(s) |
 
-Use this parameter if you want to label certain parts of your protein.
+Use this parameter if you want to label certain parts of your protein. You need to have at least 1 domain labelled. 
 
 ### _domains[].start_
 | Optionality        | Type | 
@@ -332,7 +362,7 @@ Gives the specified color to the domain. Standard circos colors + additional col
 ### _variation_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | Object |
+| Optional      | Object |
 
 Use this parameter to mark column number of your variation file (should be similar to what you download from [`Biomart Ensembl Variation`](https://www.ensembl.org/biomart/martview/) as `mart_export.txt`). Column numbers start from 1.
 
@@ -346,23 +376,23 @@ Specifies the format of the variation file, which is "ensembl" by default. Setti
 ### _variation.fileName_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String |
+| Optional      | String |
 
 Path to the variation file for your protein.
 
 ### _variation.skipHeader_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String \| Number |
+| Optional      | String \| Number |
 
-The number of lines to be skipped in your variation file. This is usually 1, which is the header itself.
+The number of lines to be skipped in your variation file. This is usually 1, which is the header itself. Defaults to 1.
 
 ### _variation.separator_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String |
+| Optional      | String |
 
-The separator of the file. Case-sensitive "tab", "whitespace", "semicolon" and "space" is supported. If none of these match, the `String` value of the parameter will be used as separator.
+The separator of the file. Case-sensitive "tab", "whitespace", "semicolon" and "space" is supported. If none of these match, the `String` value of the parameter will be used as separator. Defaults to `"tab"`.
 
 ### _variation.colBaseChange_
 | Optionality        | Type | 
@@ -374,9 +404,9 @@ The column number where the ancesteral and alternative alleles are separated by 
 ### _variation.colSubsType_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String \| Number |
+| Optional      | String \| Number |
 
-The column number where substitution type is specified such as "missense", "synonymous" etc. If this does not exist, provide the same col number as `colBaseChange`
+The column number where substitution type is specified such as "missense", "synonymous" etc. If this does not exist, provide the same col number as `colBaseChange`. Defaults to the column entered for `colBaseChange`.
 
 ### _variation.colSubsCoords_
 | Optionality        | Type | 
@@ -388,16 +418,9 @@ Col number for substitution coordinates. Choose the "Coding Start" column.
 ### _variation.colValStat_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String \| Number |
+| Optional      | String \| Number |
 
-Vaidation Status column number that states "Validated", "Not_Validated" etc. Useful for files obtained from Alamut Visual. If does not exist, provide the same col number as `colBaseChange` 
-
-### _variation.colBaseChangeStrand_
-| Optionality        | Type | 
-| ------------- |:-------------:|
-| Mandatory      | String \| Number |
-
-Strand of the change. Has to match `/^plu|min|pos|neg|[+]|[-]|1|-1/`
+Vaidation Status column number that states "Validated", "Not_Validated" etc. Useful for files obtained from Alamut Visual. If does not exist, provide the same col number as `colBaseChange`. Defaults to the column entered for `colBaseChange`.
 
 ### _variation.colBaseChangeStrand_
 | Optionality        | Type | 
@@ -409,44 +432,44 @@ Strand of the change. Has to match `/^plu|min|pos|neg|[+]|[-]|1|-1/`
 ### _variation.colGeneStrand_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String \| Number |
+| Optional      | String \| Number |
 
-Strand of the gene/transcript. Has to match `/^plu|min|pos|neg|[+]|[-]|1|-1/`
+Strand of the gene/transcript. Has to match `/^plu|min|pos|neg|[+]|[-]|1|-1/`. Defaults to `"+"`.
 
 ### _variation.transcriptID_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String  |
+| Optional      | String  |
 
-The transcript id to filter for. Use "ProcessAll" (case-sensitive) to process all rows.
+The transcript id to filter for. Use "ProcessAll" (case-sensitive) to process all rows. Defaults to `"ProcessAll"`.
 
 ### _variation.colTranscriptID_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String \| Number  |
+| Optional      | String \| Number  |
 
-The column where your transcript IDs are located.
+The column where your transcript IDs are located. Meaningful if and only if defined and `transcriptID` is NOT `"ProcessAll"`.
 
 ### _variation.colPolyphen2_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String \| Number  |
+| Optional      | String \| Number  |
 
-The column where your PolyPhen2 scores are located. If not available, use enter "NA".
+The column where your PolyPhen2 scores are located. If not available, use enter "NA". Defaults to `"NA"`.
 
 ### _variation.colSift2_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String \| Number  |
+| Optional      | String \| Number  |
 
-The column where your Sift scores are located. If not available, use enter "NA".
+The column where your Sift scores are located. If not available, use enter "NA". Defaults to `"NA"`.
 
 ### _variation.maf_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Mandatory      | String \| Number  |
+| Optional      | String \| Number  |
 
-The column where your MAF(minor allele frequency) are located. If not available write enter "NA".
+The column where your MAF(minor allele frequency) are located. If not available write enter "NA". Defaults to `"NA"`.
 
 ### _markups_
 | Optionality        | Type | 
@@ -458,7 +481,7 @@ Use this parameter if you want to mark certain regions of your sequence.
 ### _markups[].start_
 | Optionality        | Type | 
 | ------------- |:-------------:|
-| Optional      | Array of Object(s) |
+| Mandatory      | Array of Object(s) |
 
 Same as `domains[].start`.
 
@@ -509,21 +532,55 @@ If it is a falsey value, like `0`, input files will be processed and datatracks 
 | ------------- |:-------------:|
 | Optional      | String  |
 
-If empty string, then it uses the default circos inside the `circos` folder that comes with the repo. If, config.json's `path` is an empty string (which means relative paths are used), and `circos.path` is a valid path string, than the path is interpreted relative to `root/circos/bin` where `root` is the repo's directory. If config.json's `path` is `"absolute"`, then `circos.path` is expected to be a valid absolute path string. Default is an empty string.
+`circos.path` should point to the circos script to be executed.
+
+If empty string, then it uses the default circos inside the `circos` folder that comes with the repo. 
+
+If, config.json's `path` is an empty string (which means relative paths are used), and `circos.path` is a valid path string, than the path is interpreted relative to `root/circos/bin` where `root` is the repo's directory. 
+
+If config.json's `path` is `"absolute"`, then `circos.path` is expected to be a valid absolute path string. 
+
+If config.json's `path` is `"config"`, then `circos.path` is expected be relative to the config file. 
+
+Default is an empty string which means even if config.json's `path` is `"config"`, as long as `circos.path` is NOT explicity specified, it will fallback to the default circos included in the repo.
 
 ### _circos.output_
 | Optionality        | Type | 
 | ------------- |:-------------:|
 | Optional      | String  |
 
-If empty string or falsey, then it uses the default `circos-p/Output` folder that comes with the repo. If, config.json's `path` is an empty string (which means relative paths are used), and `circos.output` is a valid path string, than the path is interpreted relative to `root/i-pv/circos-p/Output/` where `root` is the repo's directory. If config.json's `path` is `"absolute"`, then `circos.output` is expected to be a valid absolute path string. Default is an empty string.
+If empty string or falsey, then it uses the default `circos-p/Output` folder that comes with the repo. 
+
+If, config.json's `path` is an empty string (which means relative paths are used), and `circos.output` is a valid path string, than the path is interpreted relative to `root/i-pv/circos-p/Output/` where `root` is the repo's directory.
+
+If config.json's `path` is `"absolute"`, then `circos.output` is expected to be a valid absolute path string. 
+
+If config.json's `path` is `"config"`, then `circos.output` is expected be relative to the config file. 
+
+Default is an empty string. Which means if you do not specify this parameter explicitly, then the outputs will go to `root/i-pv/circos-p/Output/`.
 
 ### _circos.mkdir_
 | Optionality        | Type | 
 | ------------- |:-------------:|
 | Optional      | String  |
 
-Used in conjuction with `circos.output`. If `circos.output` points to folders that does not yet exist, `circos.mkdir` permits the perl script to create them. Otherwise an error will be thrown. Default value is `undef`, which means new folders are not created.
+Used in conjuction with `circos.output`. If `circos.output` points to folders that does not yet exist, `circos.mkdir` permits the perl script to create them. Otherwise an error will be thrown. Default value is `undef`, which means new folders are NOT created.
+
+### _circos.cleanup_
+
+| Optionality        | Type | 
+| ------------- |:-------------:|
+| Optional      | String \| Number  |
+
+Removes all supplementary outputs such as `.svg` and `.txt` files and leaves only the `.html` file. Truthy values such as `1` or `"1"` will turn it on whereas falsey values such as `0` or `"0"` will turn it off. Defaults to `0`;
+
+### _circos.perms_
+
+| Optionality        | Type | 
+| ------------- |:-------------:|
+| Optional      | String   |
+
+Sets the permissions on the output files as the current user. Parameter must match the regex `^0[0-7]{3}$`. Do not provide bare values such as `0755` but instead provide `"0755"`. As these permissions are not directly transferable between Linux and Windows, only a select few permission values such as `"0444"` work on Windows. Default behavior depends on OS and current user. 
 
 ### _datatracks_
 | Optionality        | Type | 
@@ -559,6 +616,15 @@ Similar to `datatracks.move` but instead files are copied.
 | Optional      | String  |
 
 Similar to `circos.mkdir`. Determines whether `datatracks.move` and `datatracks.copy` directives are allowed to create folders or not.
+
+### _datatracks.perms_
+
+| Optionality        | Type | 
+| ------------- |:-------------:|
+| Optional      | String   |
+
+Similar to `circos.perms`.
+
 
 ## 📑 Other Scripts
 

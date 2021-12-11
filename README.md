@@ -5,6 +5,8 @@
 [![I-PV Website](https://img.shields.io/badge/ipv-website-orange)](http://www.i-pv.org/)
 [![Readme](https://img.shields.io/badge/ipv-readme-azure
 )](https://github.com/IbrahimTanyalcin/I-PV/tree/master/i-pv)
+[![Readme-Docker](https://img.shields.io/badge/ipv-docker-azure
+)](https://github.com/IbrahimTanyalcin/I-PV/tree/master/docker)
 [![Changelog](https://img.shields.io/badge/ipv-changelog-azure
 )](https://github.com/IbrahimTanyalcin/I-PV/blob/master/CHANGELOG.md)
 
@@ -54,4 +56,4 @@ npm run publishPatchNPM
 ## Mirrorring
 
 - Publish scripts automatically run `syncMirror`. For it to work, you must have `mirror.conf.json` that has `path` key, which points to the folder of the mirror. Both root folder and mirror folders are recursively searched with a depth of `5`.
-- `azure.yaml` syncs a private azure repository. You can use it for other projects by changing the `REMOTE_ADDR`variable.
+- `azure.yaml` syncs a private azure repository. You can use it for other projects by changing the `REMOTE_ADDR` variable.

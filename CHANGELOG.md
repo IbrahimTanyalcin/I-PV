@@ -1,5 +1,22 @@
 # CHANGELOG
 
+# NPM_0.1.20 / IPV_2.5
+
+- Below fields are now optional:
+  - `variation.fileName`
+  - `variation.skipHeader`
+  - `variation.separator`
+  - `variation.colSubsType`
+  - `variation.colValStat`
+  - `variation.colGeneStrand`
+  - `variation.transcriptID`
+  - `variation.colPolyphen2`
+  - `variation.colSift2`
+  - `variation.maf`
+- Added `circos.cleanup` parameter that only leaves the `*.html` as output and removes rest of the complementary files.
+- Added `circos.perms` that sets the permissions on the output files
+- Added `datatracks.perms` that sets the permissions on the output files.
+
 ## NPM_0.1.12 - NPM_0.1.18
 - Added $(BRANCH_NAME) variable to azure.yaml
 - Modified `docker/js/getFiles.js` to include node directory entry objects (`dirent`) that either pass `dirent.isFile()` or `dirent.isSymbolicLink()` to correctly list available binaries.

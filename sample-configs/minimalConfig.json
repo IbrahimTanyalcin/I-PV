@@ -1,0 +1,14 @@
+{
+	"path": "  config  ",
+	"proteinFileName": "testInput/fasta.txt",
+	"mrnaFileName": "testInput\\mRNA.txt",
+	"name": "NFKB",
+	"domains": [
+		{
+			"start": 50,
+			"end": 126,
+			"name": "domain_X",
+			"color": "vdred"
+		}
+	]
+}
