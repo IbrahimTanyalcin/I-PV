@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# NPM_0.1.21 / IPV_2.5
+# NPM_0.1.19 - NPM_0.1.22 / IPV_2.5
 
 - Below fields are now optional:
   - `variation.fileName`
