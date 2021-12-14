@@ -5,7 +5,7 @@
 To get a list of published images:
 
 [![Readme-Docker](https://img.shields.io/badge/ibowankenobi-ipv-skyblue
-)](https://hub.docker.com/repository/docker/ibowankenobi/i-pv)
+)](https://hub.docker.com/r/ibowankenobi/i-pv)
 
 ## Quickstart
 
@@ -80,7 +80,7 @@ You can see the image id using `docker image list`. If you cannot remove the ima
 ## Option 2: Pull the image from Docker Hub
 
 ```shell
-docker pull i-pv:1.0.0
+docker pull ibowankenobi/i-pv
 ```
 
 ## Running the container
@@ -90,16 +90,18 @@ Assuming you have your input file in `/path/to/folder`:
 docker run -it --mount type=bind,source=/path/to/folder,target=/app/mount image_name:tag_name
 ```
 
-If you did not build the image but pulled it instead, then:
+The `image_name` is a combination of `DockerID` and repo name, for IPV, it should be `ibowankenobi/i-pv`. If you did not build the image but pulled it instead, then:
 
 ```shell
-docker run -it --mount type=bind,source=/path/to/folder,target=/app/mount i-pv:1.0.0
+docker run -it --mount type=bind,source=/path/to/folder,target=/app/mount ibowankenobi/i-pv:1.0.0
 ```
+
+Replace `ibowankenobi/i-pv:1.0.0` with the version you want or `ibowankenobi/i-pv:latest`.
 
 In Linux system beware that path's starting with `/` are absolute. In Windows the above command would look something like:
 
 ```shell
-docker run -it --mount type=bind,source=D:\Tests\mountTest,target=/app/mount i-pv:1.0.0
+docker run -it --mount type=bind,source=D:\Tests\mountTest,target=/app/mount ibowankenobi/i-pv:1.0.0
 ```
 
 Inside the container the processes do NOT run as root but as the user 'IPV'. For that reason, on Linux systems make sure the mounted drive has write access permissions, something like `755`.
@@ -107,13 +109,13 @@ Inside the container the processes do NOT run as root but as the user 'IPV'. For
 The default mount path is assumed to be `/app/mount` inside the container. You can override it by setting an environment variable called `MOUNT_PATH`:
 
 ```shell
-docker run -it -e MOUNT_PATH='/app/anotherLocation' --mount type=bind,source=/path/to/folder,target=/app/anotherLocation i-pv:1.0.0
+docker run -it -e MOUNT_PATH='/app/anotherLocation' --mount type=bind,source=/path/to/folder,target=/app/anotherLocation ibowankenobi/i-pv:1.0.0
 ```
 
 Or pass `--mount` argument:
 
 ```shell
-docker run -it --mount type=bind,source=/path/to/folder,target=/app/anotherLocation i-pv:1.0.0 --mount /app/anotherLocation
+docker run -it --mount type=bind,source=/path/to/folder,target=/app/anotherLocation ibowankenobi/i-pv:1.0.0 --mount /app/anotherLocation
 ```
 
 ## List of arguments
@@ -135,7 +137,7 @@ Runs it in daemon mode, this functionality is not implemented yet. Instead you w
 If you want to change the location of the mounted folder inside the container, along with using `docker run -it --mount ...`, you also need to tell the `Node` process where is the mounted folders location. You can either do this by setting environment variables or the `-m` argument. `--mount` or `-m` has higher order of precedence compared to `MOUNT_PATH` environment variable. If both are not set, then the `Node` process assumes the mounted folder location is `/app/mount`. For example:
 
 ```shell
-docker run -it -e MOUNT_PATH='/app/anotherLocation1' --mount type=bind,source=/path/to/folder,target=/app/anotherLocation2 i-pv:1.0.0 -i yourInput.json -m /app/anotherLocation2
+docker run -it -e MOUNT_PATH='/app/anotherLocation1' --mount type=bind,source=/path/to/folder,target=/app/anotherLocation2 ibowankenobi/i-pv:1.0.0 -i yourInput.json -m /app/anotherLocation2
 ```
 
 Above command would disregard the `MOUNT_PATH` env variable and correctly report the location of the mounted folder as `/app/anotherLocation2` because `-m` overrides docker's `-e`.
