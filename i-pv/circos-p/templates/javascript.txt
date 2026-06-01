@@ -2,9 +2,15 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' data:;">
         <title>NewDataset</title>
-        <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
-		<script src="//danml.com/js/download.js"></script>
+        <script charset="utf-8">
+		<!-- IPV_INLINE_D3_JS -->
+		</script>
+		<!-- download.js v4.21 inlined to avoid loading from untrusted external domain -->
+		<script integrity="sha384-nY//GSjxOK1d2nES1eVh+14TsPkwGkMou79BvNz975x7s0pKK7zp9rjK5J+yvN0F">
+		<!-- IPV_INLINE_DOWNLOAD_JS -->
+		</script>
 		<style type ="text/css">
 			html {
 				transition: background-color 1s ease;
@@ -1095,6 +1101,7 @@
 			
 			//***Print***
 			var flash = 0;
+			var _IPV_CROWBAR_DATA_URL = "<!-- IPV_CROWBAR_DATA_URL -->";
 			d3.select("#annotation").append("text").text("Snapshot").attr("class","Print").attr("id","Snapshot").attr("text-anchor","middle").attr("x", 175).attr("y", 600).attr("font-family","Arial").attr("font-size","60px").attr("fill","DimGray").attr("stroke","DimGray").attr("fill-opacity",0.9).attr("stroke-opacity",0.0).attr("visibility","visible")
 			.on("mouseover",function() {
 				d3.selectAll(".Cell").remove();
@@ -1124,7 +1131,7 @@
 				d3.select("#annotation").append("circle").attr("class","Cell").attr("id","CellPhoneFlash").attr("cx",350).attr("cy",450).attr("r",450).attr("fill","White").attr("fill-opacity",1).attr("stroke","Orange").attr("stroke-opacity",0).attr("stroke-width",6);
 				flash = 1;
 				var SetTimeOut = function() {
-					d3.select(document.head).append("head:script").attr("id","print_script").attr("type","text/javascript").attr("src","https://nytimes.github.io/svg-crowbar/svg-crowbar.js");
+					d3.select(document.head).append("head:script").attr("id","print_script").attr("type","text/javascript").attr("src",_IPV_CROWBAR_DATA_URL);
 					return true;
 				};
 				d3.timer(SetTimeOut,250);

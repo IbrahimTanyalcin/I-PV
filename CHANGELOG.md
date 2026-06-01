@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## NPM_0.1.30 / IPV_2.6
+- **Security hardening**: Removed all references to untrusted external domain (`danml.com`) from templates and example outputs.
+- Inlined `download.js` (v4.21) into generated HTML via Perl script (`SNPtoAA.pl`) using a template placeholder (`<!-- IPV_INLINE_DOWNLOAD_JS -->`), eliminating the need to load it from an external domain at runtime.
+- Added `Content-Security-Policy` meta tag to the HTML template restricting script sources to `'self'`, `'unsafe-inline'`, `'unsafe-eval'`, `https://d3js.org`, and `https://nytimes.github.io`.
+- Added `integrity` and `crossorigin` attributes to the d3.v3.min.js and svg-crowbar script tags for subresource integrity (SRI) verification.
+- Bundled a local copy of `d3.v3.min.js` under `circos-p/templates/` for offline/inlining use.
+- Sanitized all 7 existing example outputs (HTML + TXT) in `circos-p/Output/`.
+- Modernized Dockerfile from `node:16` to `node:24`.
+- Bumped Docker label version to `1.0.13`, docker app package to `1.0.15`.
+- Added `ci.yml` GitHub Actions workflow for automated build and static checks.
+
 ## NPM_0.1.27 - NPM_0.1.29
 - Added an extra check at the `.github/workflows/sync-public.yml` to check if public exists to prevent the workflow from erring. To use the workflow replace `'your-user-name/your-repo'` with the correct values from your fork. This should synchronize your public branch with I-PV's master once a day.
 

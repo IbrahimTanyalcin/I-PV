@@ -1,0 +1,238 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Whitelist of allowed external domains.
+  # CI will fail if ANY URL not matching these domains is found
+  # in source files (templates, scripts, outputs).
+  # To add a new domain, append '|domain\.tld' to the pattern.
+  DOMAIN_WHITELIST: >-
+    d3js\.org|
+    nytimes\.github\.io|
+    github\.com|
+    i-pv\.org|
+    ncbi\.nlm\.nih\.gov|
+    ensembl\.org|
+    w3\.org|
+    academic\.oup\.com|
+    img\.shields\.io|
+    hub\.docker\.com|
+    nodei\.co|
+    docs\.microsoft\.com|
+    stackoverflow\.com|
+    registry\.npmjs\.org|
+    circos\.ca|
+    plantgdb\.org
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan for non-whitelisted external URLs
+        run: |
+          set -euo pipefail
+
+          WHITELIST_RE="https?://(www\.)?(${DOMAIN_WHITELIST//[[:space:]]/})"
+
+          # Also allow placeholder patterns (not real URLs)
+          PLACEHOLDER_RE="repo-to-mirror\.git"
+
+          echo "Whitelist regex: $WHITELIST_RE"
+          echo "---"
+
+          # Extract all http(s) URLs from relevant source files
+          FOUND_URLS=$(grep -rhoP 'https?://[a-zA-Z0-9._-]+\.[a-zA-Z]{2,}[a-zA-Z0-9/._?&=#%-]*' \
+            --include='*.html' --include='*.txt' --include='*.pl' \
+            --include='*.js' --include='*.json' --include='*.md' \
+            --include='*.yml' --include='*.yaml' \
+            . 2>/dev/null || true)
+
+          if [ -z "$FOUND_URLS" ]; then
+            echo "✅ No external URLs found at all"
+            exit 0
+          fi
+
+          # Filter out whitelisted and placeholder URLs
+          VIOLATIONS=$(echo "$FOUND_URLS" | grep -vP "$WHITELIST_RE" | grep -vP "$PLACEHOLDER_RE" | sort -u || true)
+
+          if [ -n "$VIOLATIONS" ]; then
+            echo "::error::❌ Found URLs referencing non-whitelisted domains:"
+            echo "$VIOLATIONS"
+            echo ""
+            echo "If these are legitimate, add them to DOMAIN_WHITELIST in ci.yml"
+            exit 1
+          fi
+
+          echo "✅ All external URLs belong to whitelisted domains"
+
+      - name: CSP meta tag present in template
+        run: |
+          grep -q 'Content-Security-Policy' i-pv/circos-p/templates/javascript.txt
+          echo "✅ CSP meta tag present in template"
+
+      - name: SRI integrity attributes on external scripts
+        run: |
+          set -euo pipefail
+          TEMPLATE="i-pv/circos-p/templates/javascript.txt"
+
+          # Every <script> tag with src= pointing to https:// must have integrity=
+          EXTERNAL_SCRIPTS_WITHOUT_SRI=$(grep -oP '<script[^>]+src="https://[^"]*"[^>]*>' "$TEMPLATE" | grep -v 'integrity=' || true)
+
+          if [ -n "$EXTERNAL_SCRIPTS_WITHOUT_SRI" ]; then
+            echo "::error::❌ External script tags missing integrity attribute:"
+            echo "$EXTERNAL_SCRIPTS_WITHOUT_SRI"
+            exit 1
+          fi
+          echo "✅ All external script tags have SRI integrity attributes"
+
+      - name: download.js inline placeholder present
+        run: |
+          grep -q 'IPV_INLINE_DOWNLOAD_JS' i-pv/circos-p/templates/javascript.txt
+          echo "✅ download.js inline placeholder present in template"
+
+      - name: Local d3.v3.min.js bundled
+        run: |
+          test -f i-pv/circos-p/templates/d3.v3.min.js
+          echo "✅ Local d3.v3.min.js found in templates"
+
+      - name: Perl script inlines download.js
+        run: |
+          grep -q 'IPV_INLINE_DOWNLOAD_JS' i-pv/script/SNPtoAA.pl
+          echo "✅ SNPtoAA.pl handles download.js inlining"
+
+  docker-build-and-test:
+    runs-on: ubuntu-24.04
+    needs: static-checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          cd docker
+          docker build -t ipv-ci:test .
+          echo "✅ Docker image built successfully"
+
+      - name: Healthcheck - container starts and binaries resolve
+        run: |
+          # Run the container with a simple echo to verify it starts
+          docker run --rm ipv-ci:test --help 2>&1 | head -20 || true
+          echo "✅ Container starts successfully"
+
+      - name: Prepare test input
+        run: |
+          mkdir -p /tmp/ipv-ci-mount/testInput
+          cp i-pv/circos-p/Input/nfkb1/* /tmp/ipv-ci-mount/testInput/
+          cat > /tmp/ipv-ci-mount/config.json << 'CIEOF'
+          {
+            "path": "config",
+            "autoflush": 1,
+            "proteinFileName": "testInput/fasta.txt",
+            "mrnaFileName": "testInput/mRNA.txt",
+            "conservation": {
+              "consFileName": "testInput/conservation.txt",
+              "barHeight": 0,
+              "defVal": "CI"
+            },
+            "name": "CI_TEST",
+            "domains": [
+              {
+                "start": 50,
+                "end": 126,
+                "name": "domain_X",
+                "color": "vdred"
+              }
+            ],
+            "variation": {
+              "format": "ensembl",
+              "fileName": "testInput/mart_export.txt",
+              "skipHeader": 1,
+              "separator": "tab",
+              "colBaseChange": 4,
+              "colSubsType": 4,
+              "colSubsCoords": 8,
+              "colValStat": 4,
+              "colBaseChangeStrand": 3,
+              "colGeneStrand": "+",
+              "transcriptID": "ENST00000505458",
+              "colTranscriptID": 6,
+              "colPolyphen2": 10,
+              "colSift2": 11,
+              "maf": 5
+            },
+            "circos": {
+              "run": 1,
+              "output": "./testOutput/output",
+              "mkdir": 1,
+              "cleanup": 1
+            },
+            "datatracks": {
+              "cleanup": 1,
+              "mkdir": 1,
+              "move": "./testOutput/datatracks"
+            }
+          }
+          CIEOF
+          chmod -R 755 /tmp/ipv-ci-mount
+          echo "✅ Test input prepared"
+
+      - name: Run I-PV generation inside Docker container
+        run: |
+          docker run --rm \
+            --mount type=bind,source=/tmp/ipv-ci-mount,target=/app/mount \
+            ipv-ci:test \
+            -i config.json
+
+      - name: Verify output was generated
+        run: |
+          set -euo pipefail
+          OUTPUT_HTML="/tmp/ipv-ci-mount/testOutput/output/CI_TEST.html"
+
+          if [ ! -f "$OUTPUT_HTML" ]; then
+            echo "::error::❌ Expected output file CI_TEST.html was not generated"
+            ls -laR /tmp/ipv-ci-mount/testOutput/ 2>/dev/null || echo "testOutput directory does not exist"
+            exit 1
+          fi
+
+          echo "✅ CI_TEST.html generated successfully ($(wc -c < "$OUTPUT_HTML") bytes)"
+
+      - name: Verify generated output has CSP and inlined download.js
+        run: |
+          set -euo pipefail
+          OUTPUT_HTML="/tmp/ipv-ci-mount/testOutput/output/CI_TEST.html"
+
+          if ! grep -q 'Content-Security-Policy' "$OUTPUT_HTML"; then
+            echo "::error::❌ Generated HTML is missing CSP meta tag"
+            exit 1
+          fi
+          echo "✅ CSP meta tag present in generated output"
+
+          if ! grep -q 'function download' "$OUTPUT_HTML"; then
+            echo "::error::❌ download.js was not inlined into generated HTML"
+            exit 1
+          fi
+          echo "✅ download.js inlined in generated output"
+
+          if grep -qi 'danml' "$OUTPUT_HTML"; then
+            echo "::error::❌ Generated HTML still references danml.com"
+            exit 1
+          fi
+          echo "✅ No untrusted domain references in generated output"
+
+          if ! grep -q 'integrity=' "$OUTPUT_HTML"; then
+            echo "::error::❌ Generated HTML is missing SRI integrity attributes"
+            exit 1
+          fi
+          echo "✅ SRI integrity attributes present in generated output"

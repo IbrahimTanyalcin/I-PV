@@ -99,6 +99,7 @@ I-PV Perl modules (*[version string, module name]*)
 - 1.51 FindBin
 - 3.01 JSON::XS
 - 1.42 List::Util
+- 3.15 MIME::Base64
 - 3.56 Cwd
 
 Circos Perl modules *[version, module name]*

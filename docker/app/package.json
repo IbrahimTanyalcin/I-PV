@@ -1,6 +1,6 @@
 {
   "name": "docker-for-i-pv",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "a simple docker container for running i-pv",
   "main": "main.js",
   "scripts": {
@@ -23,6 +23,6 @@
   "license": "MIT",
   "dependencies": {
     "cross-env": "^7.0.3",
-    "ibowankenobi-i-pv": "^0.1.7"
+    "ibowankenobi-i-pv": "^0.1.30"
   }
 }
