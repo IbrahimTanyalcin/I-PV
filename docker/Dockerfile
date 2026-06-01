@@ -1,10 +1,10 @@
-FROM node:16
+FROM node:24
 
 LABEL maintainer="Ibrahim Tanyalcin"
 LABEL description="Mount volume with config.json \ 
 to create html output"
-LABEL version="1.0.12"
-LABEL website="http://i-pv.org/"
+LABEL version="1.0.13"
+LABEL website="https://i-pv.org/"
 LABEL repository="https://github.com/IbrahimTanyalcin/I-PV"
 
 WORKDIR /app
@@ -21,7 +21,7 @@ RUN ["/bin/bash", "-c", "echo | cpan"]
 RUN ["/bin/bash", "-c", "cpan install GD"]
 
 
-COPY ./app/package*.json ./
+COPY ./app/package*.json ./app/.npmrc ./
 RUN npm install
 COPY ./app ./
 RUN /bin/bash ./bin/installDeps.sh

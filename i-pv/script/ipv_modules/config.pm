@@ -82,11 +82,13 @@ sub new {
 					-> {transliterate} 
 					-> {bSlash}
 					-> (\$type);
+				# If the type already has a file extension, use it as-is
+				my $filename = ($type =~ /\.[^.]+$/) ? $type : $type . ".txt";
 				return File::Spec -> catfile(
 					$self -> {scriptPath},
 					$self -> {relPath},
 					"/circos-p/templates/",
-					$type . ".txt"
+					$filename
 				);
 			},
 			plotConf => sub {

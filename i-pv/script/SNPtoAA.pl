@@ -718,10 +718,77 @@ open(my $javascriptfile, '<', $cCache -> {path} -> {templates} -> ("javascript")
 open(my $svgtextfile, '<', $cCache -> {path} -> {outputWithExt} -> ("circos.txt")) or die "Cannot read from vector file!\n";
 open(my $htmltextfile, '>', $cCache -> {path} -> {outputWithExt} -> ("$protein_name.txt")) or die "Cannot write to html text file!\n";
 
+# Read download.js for inlining
+my $downloadJsPath = $cCache -> {path} -> {templates} -> ("download.js");
+my $downloadJsContent = "";
+if (-e $downloadJsPath) {
+	open(my $dljs, '<', $downloadJsPath) or warn "Cannot read download.js for inlining: $!\n";
+	if ($dljs) {
+		local $/;
+		$downloadJsContent = <$dljs>;
+		close($dljs);
+	}
+} else {
+	warn "download.js not found at $downloadJsPath - download functionality will not be inlined\n";
+}
+
+# Read d3.v3.min.js for inlining
+my $d3JsPath = $cCache -> {path} -> {templates} -> ("d3.v3.min.js");
+my $d3JsContent = "";
+if (-e $d3JsPath) {
+	open(my $d3js, '<', $d3JsPath) or warn "Cannot read d3.v3.min.js for inlining: $!\n";
+	if ($d3js) {
+		local $/;
+		$d3JsContent = <$d3js>;
+		close($d3js);
+	}
+} else {
+	warn "d3.v3.min.js not found at $d3JsPath - d3 will not be inlined\n";
+}
+
+# Read svg-crowbar.js and create data URL for inlining
+use MIME::Base64;
+my $crowbarJsPath = $cCache -> {path} -> {templates} -> ("svg-crowbar.js");
+my $crowbarDataUrl = "";
+if (-e $crowbarJsPath) {
+	open(my $crjs, '<', $crowbarJsPath) or warn "Cannot read svg-crowbar.js for inlining: $!\n";
+	if ($crjs) {
+		local $/;
+		my $crowbarContent = <$crjs>;
+		close($crjs);
+		$crowbarDataUrl = "data:text/javascript;base64," . encode_base64($crowbarContent, "");
+	}
+} else {
+	warn "svg-crowbar.js not found at $crowbarJsPath - crowbar will not be inlined\n";
+}
+
 while (<$javascriptfile>) {
 	my $i = 0;
 	if ($_ =~ /var cdna/) {
 		print $htmltextfile "var cdna = ".arrayToString(@cdna_array).";\n";
+	} elsif ($_ =~ /<!--\s*IPV_INLINE_DOWNLOAD_JS\s*-->/) {
+		# Replace placeholder with actual download.js content
+		if ($downloadJsContent) {
+			print $htmltextfile $downloadJsContent;
+		} else {
+			print $htmltextfile $_;
+		}
+	} elsif ($_ =~ /<!--\s*IPV_INLINE_D3_JS\s*-->/) {
+		# Replace placeholder with actual d3.v3.min.js content
+		if ($d3JsContent) {
+			print $htmltextfile $d3JsContent;
+		} else {
+			print $htmltextfile $_;
+		}
+	} elsif ($_ =~ /<!--\s*IPV_CROWBAR_DATA_URL\s*-->/) {
+		# Replace placeholder with crowbar data URL
+		if ($crowbarDataUrl) {
+			my $line = $_;
+			$line =~ s/<!--\s*IPV_CROWBAR_DATA_URL\s*-->/$crowbarDataUrl/;
+			print $htmltextfile $line;
+		} else {
+			print $htmltextfile $_;
+		}
 	} else {
 		print $htmltextfile $_;
 	}

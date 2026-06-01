@@ -1,0 +1,129 @@
+name: CI Barebones
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+
+    container:
+      image: node:24
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ vars.REPO_NAME || github.repository }}
+        ref: 'master'
+        token: ${{ secrets.GIT_WORKFLOW_TOKEN || secrets.GITHUB_TOKEN || secrets.GH_PAT }}
+
+    - name: Set up working directory
+      run: |
+        cd docker/app
+        echo "PWD=$(pwd)" >> $GITHUB_ENV
+
+    - name: Install dependencies
+      run: |
+        apt-get -y update
+        apt-get -y install perl-doc
+        apt-get -y install libgd-dev
+        apt-get -y install jq
+        /bin/bash -c "echo | cpan"
+        cpan install GD
+        npm install
+      working-directory: ${{ env.PWD }}
+
+    - name: Run setup scripts
+      run: |
+        /bin/bash ./bin/installDeps.sh
+      working-directory: ${{ env.PWD }}
+
+    - name: Set LOGNAME environment variable for Circos
+      run: |
+        if [ -z "${LOGNAME}" ]; then
+          echo "LOGNAME not set, setting to default 'IPV'"
+          echo "LOGNAME=IPV" >> $GITHUB_ENV
+        else
+          echo "LOGNAME is set to '${LOGNAME}', no changes made"
+        fi
+
+    - name: Change to project root
+      run: |
+        cd $GITHUB_WORKSPACE
+        echo "PWD=$(pwd)" >> $GITHUB_ENV
+
+    - name: Set path to test artifact
+      run: |
+        echo "TEST_ARTIFACT=$GITHUB_WORKSPACE/i-pv/circos-p/Output/testOutput/output/NFKB.html" >> $GITHUB_ENV
+      working-directory: ${{ env.PWD }}
+
+    - name: Install root dependencies
+      run: npm install
+      working-directory: ${{ env.PWD }}
+
+    - name: Set permissions for the i-pv directory
+      run: chmod -R 777 i-pv
+      working-directory: ${{ env.PWD }}
+
+    - name: Run tests
+      run: npm run test
+      working-directory: ${{ env.PWD }}
+
+    - name: Check test output
+      run: |
+        if [ -f "$TEST_ARTIFACT" ]; then
+          echo "✅ Test output exists."
+        else
+          echo "❌ Test output does not exist." && exit 1
+        fi
+      working-directory: ${{ env.PWD }}
+
+    - name: Upload test artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ipv-test-output
+        path: ${{ env.TEST_ARTIFACT }}
+        retention-days: 7
+
+  publish-artifact:
+    runs-on: ubuntu-24.04
+    needs: build-and-test
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push' && vars.ARTIFACT_REPO != ''
+
+    steps:
+    - name: Download test artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ipv-test-output
+        path: /tmp/ipv-artifact
+
+    - name: Clone artifact repo and push
+      run: |
+        set -e
+        git config --global user.email ${{ secrets.GIT_USER_EMAIL }}
+        git config --global user.name ${{ secrets.GIT_USER_NAME }}
+        git clone --no-checkout --filter=blob:none https://x-access-token:${{ secrets.GH_PAT || secrets.GIT_WORKFLOW_TOKEN }}@github.com/${{ vars.ARTIFACT_REPO }}.git temp_repo
+        cd temp_repo
+        git sparse-checkout init --no-cone
+        git sparse-checkout set '/*' '!/papers/' '!/static/img/'
+        git checkout -B master origin/master
+        mkdir -p ${{ env.TARGET_DIR }}
+        mv /tmp/ipv-artifact/NFKB.html ${{ env.TARGET_DIR }}/NFKB.html
+        /bin/bash "${{ env.UPDATE_DATE_SCRIPT }}" "${{ env.ENTRY_JSON }}" "pipeline artifacts"
+        /bin/bash "${{ env.UPDATE_DATE_SCRIPT }}" "${{ env.ARTIFACT_JSON }}" "i-pv.example.js"
+        git add "${{ env.ENTRY_JSON }}"
+        git add "${{ env.ARTIFACT_JSON }}"
+        git add "${{ env.TARGET_DIR }}/NFKB.html"
+        git commit -m "Add I-PV test artifact $(date -u)"
+        git push
+      env:
+        TARGET_DIR: temp_repo/pipeline-artifacts/i-pv
+        ENTRY_JSON: temp_repo/static/md/meta.json
+        ARTIFACT_JSON: "temp_repo/static/md/pipeline artifacts/meta.json"
+        UPDATE_DATE_SCRIPT: temp_repo/.github/bin/update-date.sh
