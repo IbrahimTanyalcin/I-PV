@@ -1,6 +1,6 @@
 {
   "name": "ibowankenobi-i-pv",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "org_ipv": {
     "version": "2.6"
   },
@@ -31,7 +31,7 @@
     "publishFeature": "npm run bumpMinorNPM && npm run bumpMajorIPV && npm run publishRest",
     "publishMajor": "npm run bumpMajor && npm run publishRest",
     "syncMirror": "cross-env-shell node ./util/syncMirror.js",
-    "test": "cross-env-shell node ./util/test/outputTest.js"
+    "test": "node ./util/test/outputTest.js"
   },
   "keywords": [
     "interactive",

@@ -40,7 +40,7 @@
 			});
 			return retVal;
 		};
-	execute('cross-env-shell perl ' + ipvPath + " --config " + configPath)
+	execute('perl ' + ipvPath + " --config " + configPath)
 	.then(function(res){
 		fs.access(htmlPath, fs.constants.F_OK | fs.constants.R_OK, (err) => {
 			if(!err){

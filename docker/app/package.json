@@ -4,7 +4,7 @@
   "description": "a simple docker container for running i-pv",
   "main": "main.js",
   "scripts": {
-    "test": "cross-env-shell node ./main.js"
+    "test": "node ./main.js"
   },
   "keywords": [
     "docker",
@@ -22,7 +22,6 @@
   "author": "Ibrahim Tanyalcin",
   "license": "MIT",
   "dependencies": {
-    "cross-env": "^7.0.3",
     "ibowankenobi-i-pv": "^0.1.30"
   }
 }
