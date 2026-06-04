@@ -35,6 +35,16 @@ function getFiles(
 function process(dir, depth, relativeTo, result, callsRemaining, resolver, rejector){
 	fs.readdir(dir, {withFileTypes: true},(err,files) => {
 		if(err){
+			// If the directory doesn't exist, resolve with whatever we have so far
+			// (empty array for a top-level call). This handles the case where
+			// node_modules/.bin is absent because no package installs binaries.
+			if(err.code === 'ENOENT'){
+				callsRemaining.value--;
+				if(!callsRemaining.value){
+					resolver(result);
+				}
+				return;
+			}
 			rejector(err);
 			return;
 		}
