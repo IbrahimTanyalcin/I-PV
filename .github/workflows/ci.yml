@@ -31,7 +31,8 @@ env:
     stackoverflow\.com|
     registry\.npmjs\.org|
     circos\.ca|
-    plantgdb\.org
+    plantgdb\.org|
+    perldoc\.perl\.org
 
 jobs:
   static-checks:
