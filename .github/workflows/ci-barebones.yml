@@ -122,7 +122,7 @@ jobs:
         git commit -m "Add I-PV test artifact $(date -u)"
         git push
       env:
-        TARGET_DIR: temp_repo/pipeline-artifacts/i-pv
-        ENTRY_JSON: temp_repo/static/md/meta.json
-        ARTIFACT_JSON: "temp_repo/static/md/pipeline artifacts/meta.json"
-        UPDATE_DATE_SCRIPT: temp_repo/.github/bin/update-date.sh
+        TARGET_DIR: pipeline-artifacts/i-pv
+        ENTRY_JSON: static/md/meta.json
+        ARTIFACT_JSON: "static/md/pipeline artifacts/meta.json"
+        UPDATE_DATE_SCRIPT: .github/bin/update-date.sh
